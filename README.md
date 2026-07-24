@@ -54,15 +54,28 @@ desenha — nada some no caminho, nada aparece do nada.
 
 ## Rodar
 
-```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-./notocorda                    # janela nativa, abre o exemplo da cafeteria
-```
-
-Sem instalar nada — serve por HTTP e abre no navegador:
+O caminho curto, sem instalar nada — o mapa é uma página:
 
 ```bash
 python3 -m http.server 8137    # depois: http://localhost:8137/viewer/
+```
+
+Para o compilador e o validador, um venv comum basta:
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python compiler/validate.py examples/cafeteria/graph.json
+```
+
+A **janela nativa** (`./notocorda`) usa o WebKit do próprio sistema, e o pip
+não entrega isso: o `pywebview` precisa das ligações GTK ou Qt instaladas
+fora do venv. No Debian/Ubuntu:
+
+```bash
+sudo apt install python3-gi gir1.2-webkit2-4.1
+python3 -m venv --system-site-packages .venv   # o venv precisa enxergá-las
+.venv/bin/pip install -r requirements.txt
+./notocorda                                    # abre o exemplo da cafeteria
 ```
 
 Outros usos:
@@ -71,7 +84,6 @@ Outros usos:
 ./notocorda --listar                          # que mapas existem por perto
 ./notocorda ../meu-vault/generated/graph.json # o mapa não precisa morar aqui
 ./notocorda --web 8137                        # só serve, sem janela nativa
-python3 compiler/validate.py examples/cafeteria/graph.json
 ```
 
 ## Como está organizado

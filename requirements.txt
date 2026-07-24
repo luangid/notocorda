@@ -2,6 +2,9 @@
 PyYAML>=6.0
 jsonschema>=4.10
 
-# Janela nativa (desktop/) — usa o WebKit do próprio sistema.
-# Só para `./notocorda`; servir por HTTP e abrir no navegador dispensa.
+# Janela nativa (desktop/) — só para `./notocorda`; servir por HTTP e abrir
+# no navegador dispensa. Usa o WebKit do próprio sistema, então o pip não
+# basta: são precisas as ligações GTK ou Qt de fora do venv (no Debian/
+# Ubuntu, `python3-gi` + `gir1.2-webkit2-4.1`) e um venv criado com
+# --system-site-packages. Ver o README.
 pywebview>=6.2
