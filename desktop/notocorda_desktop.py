@@ -12,10 +12,13 @@ O mapa NÃO precisa morar dentro deste repositório: a ferramenta é uma, os
 mapas são muitos. Ao receber um grafo de fora, o servidor sobe no ancestral
 comum entre o repositório e o mapa, e as duas árvores ficam visíveis.
 
+Abre-se a PASTA da documentação, não o arquivo derivado: o graph.json é
+compilado na hora quando falta ou quando algum Markdown está mais novo.
+
 Uso:
     .venv/bin/python desktop/notocorda_desktop.py                  # exemplo da cafeteria
-    .venv/bin/python desktop/notocorda_desktop.py ../outro-vault/generated/graph.json
-    .venv/bin/python desktop/notocorda_desktop.py --listar         # que grafos existem
+    .venv/bin/python desktop/notocorda_desktop.py ../outro-vault   # a pasta do mapa
+    .venv/bin/python desktop/notocorda_desktop.py --listar         # que mapas existem
     .venv/bin/python desktop/notocorda_desktop.py --teste          # abre e fecha (checagem)
 """
 from __future__ import annotations
@@ -33,7 +36,7 @@ import threading
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent          # o repositório: viewer/, compiler/
-GRAFO_PADRAO = "examples/cafeteria/graph.json"
+GRAFO_PADRAO = "examples/cafeteria"
 
 # Preenchidas em `abrir_mapa()` — dependem de qual grafo foi pedido:
 BASE = RAIZ        # pasta servida por HTTP (ancestral comum de RAIZ e do mapa)
@@ -58,7 +61,89 @@ def abrir_mapa(grafo: Path) -> None:
     comuns = Path(*os.path.commonprefix([RAIZ.parts, grafo.parts]))
     BASE = comuns if comuns.is_dir() else RAIZ
 
+
 sys.path.insert(0, str(RAIZ / "compiler"))
+
+# --- abrir pela PASTA da documentação ------------------------------------
+# Quem escreve pensa na pasta dos Markdown, não no arquivo derivado. Então o
+# que se aponta é o vault; o graph.json é detalhe de implementação, e é
+# recompilado sozinho quando algum Markdown está mais novo que ele.
+
+
+def eh_vault(pasta: Path) -> bool:
+    """Uma pasta é um mapa quando tem documentos de autoria ou grafo compilado."""
+    if not pasta.is_dir():
+        return False
+    if (pasta / "generated" / "graph.json").exists() or (pasta / "graph.json").exists():
+        return True
+    return any((pasta / d).is_dir() for d in ("spine", "realizations", "problems"))
+
+
+def grafo_do_vault(vault: Path) -> Path:
+    """Onde mora (ou vai morar) o grafo compilado deste vault."""
+    solto = vault / "graph.json"
+    return solto if solto.exists() else vault / "generated" / "graph.json"
+
+
+def _desatualizado(vault: Path, grafo: Path) -> bool:
+    if not grafo.exists():
+        return True
+    corte = grafo.stat().st_mtime
+    return any(md.stat().st_mtime > corte for md in vault.rglob("*.md"))
+
+
+def compilar(vault: Path, destino: Path) -> Path:
+    """Roda o compilador sobre os Markdown do vault e grava o graph.json.
+
+    Não reescreve quando o resultado é igual ao que já está em disco: abrir o
+    mapa não deve sujar o git só porque o carimbo de hora mudou.
+    """
+    import build_graph  # compiler/build_graph.py
+
+    schemas = vault / "schemas"
+    if not (schemas / "registries.yaml").exists():
+        schemas = RAIZ / "schemas"
+    graph = build_graph.construir(vault, schemas)
+    if not graph["nodes"]:
+        # aponta-se para a pasta errada com facilidade, e o compilador varre a
+        # subárvore inteira: melhor recusar que gravar um grafo vazio lá dentro
+        raise ValueError(f"nenhum documento de autoria em {vault}")
+    texto = json.dumps(graph, ensure_ascii=False, indent=2) + "\n"
+
+    if destino.exists():
+        antigo = json.loads(destino.read_text(encoding="utf-8"))
+        if {**antigo, "generated_at": None} == {**graph, "generated_at": None}:
+            destino.touch()   # marca como conferido, para não recompilar de novo
+            return destino
+
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(texto, encoding="utf-8")
+    return destino
+
+
+def resolver_mapa(alvo: Path) -> Path:
+    """Aceita a PASTA da documentação ou o graph.json, e devolve o graph.json.
+
+    Dada uma pasta, compila os Markdown quando o grafo não existe ou está
+    velho. Se o compilador falhar (falta de dependência, erro de documento),
+    cai para o último grafo compilado, se houver — ver o mapa desatualizado é
+    melhor que não ver mapa nenhum.
+    """
+    if alvo.is_file():
+        return alvo
+    if not eh_vault(alvo):
+        raise ValueError(f"{alvo} não parece a pasta de um mapa "
+                         "(sem spine/, sem realizations/, sem graph.json)")
+    grafo = grafo_do_vault(alvo)
+    if _desatualizado(alvo, grafo):
+        try:
+            return compilar(alvo, grafo)
+        except Exception as exc:  # noqa: BLE001
+            if not grafo.exists():
+                raise
+            print(f"aviso: não consegui recompilar ({exc}); abrindo o grafo anterior",
+                  file=sys.stderr)
+    return grafo
 
 
 class ServidorSilencioso(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -105,7 +190,9 @@ def listar_grafos() -> list[dict]:
         if any(p in (".venv", ".obsidian", ".git", "node_modules") for p in caminho.parts):
             continue
         rel = os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
-        item = {"caminho": rel, "nome": caminho.parent.name}
+        # o nome é o da PASTA da documentação, não o da `generated/` que só
+        # guarda o derivado — é assim que quem escreve chama o mapa
+        item = {"caminho": rel, "nome": raiz_do_vault(caminho).name}
         try:
             with caminho.open(encoding="utf-8") as f:
                 g = json.load(f)
@@ -154,11 +241,15 @@ class PonteNotocorda:
         return listar_grafos()
 
     def escolher_grafo(self) -> dict:
-        """Diálogo nativo para abrir QUALQUER graph.json — isto é uma
+        """Diálogo nativo para abrir a PASTA de um mapa — isto é uma
         ferramenta, não o leitor de um mapa só.
 
-        Devolve o caminho relativo quando o arquivo mora dentro da raiz servida
-        (aí a interface só troca o `?graph=`), e o conteúdo já lido quando ele
+        Escolhe-se a pasta da documentação, não o arquivo derivado: quem
+        escreve pensa nos Markdown. O grafo é compilado na hora se estiver
+        faltando ou velho.
+
+        Devolve o caminho relativo quando a pasta mora dentro da raiz servida
+        (aí a interface só troca o `?graph=`), e o conteúdo já lido quando ela
         vem de fora — nesse caso o viewer o guarda na sessão do navegador.
         """
         try:
@@ -168,15 +259,17 @@ class PonteNotocorda:
             if janela is None:
                 return {"ok": False, "erro": "janela indisponível"}
             escolha = janela.create_file_dialog(
-                webview.OPEN_DIALOG,
-                allow_multiple=False,
+                webview.FOLDER_DIALOG,
                 directory=str(BASE),
-                file_types=("Grafo (*.json)", "Todos os arquivos (*.*)"),
             )
             if not escolha:
                 return {"ok": False, "cancelado": True}
 
-            caminho = Path(escolha[0]).resolve()
+            pasta = Path(escolha[0]).resolve()
+            try:
+                caminho = resolver_mapa(pasta)
+            except ValueError as exc:
+                return {"ok": False, "erro": str(exc)}
             dados = json.loads(caminho.read_text(encoding="utf-8"))
             if not isinstance(dados.get("nodes"), list):
                 return {"ok": False, "erro": f"{caminho.name} não parece um graph.json (sem `nodes`)"}
@@ -188,7 +281,7 @@ class PonteNotocorda:
                 "ok": True,
                 "caminho": str(caminho),
                 "relativo": relativo,
-                "nome": caminho.parent.name,
+                "nome": raiz_do_vault(caminho).name,
                 "conteudo": None if relativo else dados,
             }
         except Exception as exc:  # noqa: BLE001 - devolvido à interface
@@ -254,16 +347,26 @@ def montar_url(porta: int, grafo: Path) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Notocorda — mapa vivo (desktop)")
-    ap.add_argument("grafo", nargs="?", default=GRAFO_PADRAO,
-                    help=f"graph.json a abrir (padrão: {GRAFO_PADRAO})")
-    ap.add_argument("--listar", action="store_true", help="lista os grafos disponíveis e sai")
+    ap.add_argument("mapa", nargs="?", default=GRAFO_PADRAO,
+                    help=f"pasta da documentação a abrir (padrão: {GRAFO_PADRAO}); "
+                         "aceita também um graph.json direto")
+    ap.add_argument("--listar", action="store_true", help="lista os mapas disponíveis e sai")
     ap.add_argument("--teste", action="store_true", help="abre e fecha a janela — checagem do ambiente")
     args = ap.parse_args()
 
-    grafo = Path(args.grafo)
-    grafo = (grafo if grafo.is_absolute() else Path.cwd() / grafo).resolve()
-    if not grafo.exists():
-        grafo = (RAIZ / args.grafo).resolve()   # também aceita caminho relativo ao repo
+    alvo = Path(args.mapa)
+    alvo = (alvo if alvo.is_absolute() else Path.cwd() / alvo).resolve()
+    if not alvo.exists():
+        alvo = (RAIZ / args.mapa).resolve()   # também aceita caminho relativo ao repo
+    if not alvo.exists():
+        print(f"não encontrei {args.mapa}", file=sys.stderr)
+        return 1
+
+    try:
+        grafo = resolver_mapa(alvo)   # pasta → compila se preciso; arquivo → ele mesmo
+    except Exception as exc:  # noqa: BLE001
+        print(f"não consegui abrir {args.mapa}: {exc}", file=sys.stderr)
+        return 1
     abrir_mapa(grafo)
 
     if args.listar:
@@ -271,12 +374,9 @@ def main() -> int:
             if "erro" in g:
                 print(f"  ✗ {g['caminho']}: {g['erro']}")
             else:
-                print(f"  · {g['caminho']}  —  {g['nos']} nós, {g['relacoes']} relações, {g['etapas']} etapas")
+                print(f"  · {g['nome']}  ({g['caminho']})  —  {g['nos']} nós, "
+                      f"{g['relacoes']} relações, {g['etapas']} etapas")
         return 0
-
-    if not grafo.exists():
-        print(f"não encontrei {args.grafo}", file=sys.stderr)
-        return 1
 
     try:
         import webview

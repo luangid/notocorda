@@ -18,8 +18,10 @@ documento de origem, relações do vocabulário §6.4.
 ```
 
 Sem argumento, abre o exemplo da cafeteria — o mesmo padrão do `index.html`
-quando servido por HTTP. Para outro mapa, passe o caminho do `graph.json`,
-mesmo que ele more fora deste repositório.
+quando servido por HTTP. Para outro mapa, passe a **pasta da documentação**
+(`./notocorda ../meu-vault`), mesmo que ela more fora deste repositório: o
+`graph.json` é compilado na hora se faltar ou se algum Markdown estiver mais
+novo que ele.
 
 **A interface é uma só** para desktop e web (CONTRATO §5.6). Quem sabe onde
 está rodando é apenas `bridge.js`: no desktop ele fala com o Python por
@@ -106,9 +108,10 @@ console.log('cruzamentos no eixo:', g.cruzamentos, '| colunas:', g.colunas.map(c
 ## Abrir outro mapa
 
 Isto é **ferramenta**, não o leitor de um mapa só: o botão **Abrir mapa**
-lista os `graph.json` ao alcance (no desktop o Python varre a pasta servida;
-no navegador sondamos os caminhos de convenção) e abre qualquer outro arquivo
-do disco — diálogo nativo no desktop, seletor do navegador na web.
+lista os mapas ao alcance (no desktop o Python varre a pasta servida; no
+navegador sondamos os caminhos de convenção) e abre qualquer outro do disco —
+no desktop o diálogo pede a **pasta** da documentação e compila o que for
+preciso; no navegador, que não tem compilador, pede o `graph.json`.
 
 Trocar de mapa **recarrega a página** com outro `?graph=`: é o jeito honesto
 de zerar câmera, trilha e níveis, que são por mapa. Arquivo fora da pasta

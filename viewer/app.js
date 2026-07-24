@@ -969,6 +969,10 @@ class NotocordaApp {
     const lista = this.$('abrir-lista');
     lista.innerHTML = '<div style="padding:10px 12px; font-size:11.5px; opacity:.6;">procurando…</div>';
     this.$('abrir-modo').textContent = this._modo === 'desktop' ? 'desktop' : 'navegador';
+    // no desktop escolhe-se a PASTA da documentação (o Python compila o que
+    // faltar); no navegador não há compilador, então só resta o arquivo pronto
+    this.$('btn-escolher').textContent =
+      this._modo === 'desktop' ? 'Escolher pasta do mapa…' : 'Escolher arquivo…';
     let grafos = [];
     try { grafos = await NotocordaBridge.grafosDisponiveis(); } catch (e) { grafos = []; }
     const atual = (this.graphUrl || '').replace(/^\.\.\//, '');

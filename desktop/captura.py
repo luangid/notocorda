@@ -26,7 +26,7 @@ import notocorda_desktop as ad  # noqa: E402
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="captura o canvas do mapa")
-    ap.add_argument("grafo", help="graph.json relativo à raiz do repositório")
+    ap.add_argument("grafo", help="pasta do mapa (ou um graph.json)")
     ap.add_argument("saida", help="arquivo PNG de saída")
     ap.add_argument("--nivel", type=int, default=None, help="nível do seletor a exibir")
     ap.add_argument("--espera", type=float, default=7.0, help="segundos até a física assentar")
@@ -38,10 +38,11 @@ def main() -> int:
         print("pywebview não instalado.", file=sys.stderr)
         return 1
 
-    grafo = Path(args.grafo)
-    grafo = (grafo if grafo.is_absolute() else Path.cwd() / grafo).resolve()
-    if not grafo.exists():
-        grafo = (ad.RAIZ / args.grafo).resolve()
+    alvo = Path(args.grafo)
+    alvo = (alvo if alvo.is_absolute() else Path.cwd() / alvo).resolve()
+    if not alvo.exists():
+        alvo = (ad.RAIZ / args.grafo).resolve()
+    grafo = ad.resolver_mapa(alvo)   # aceita a pasta do mapa ou o graph.json
     ad.abrir_mapa(grafo)
 
     servidor, porta = ad.subir_servidor()

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Notocorda — lançador de terminal.
 #
-#   ./notocorda                                   abre o exemplo da cafeteria
-#   ./notocorda --listar                          mostra os grafos disponíveis
-#   ./notocorda ../meu-vault/generated/graph.json abre outro mapa
-#   ./notocorda --web                             só serve no navegador, sem janela
+#   ./notocorda                       abre o exemplo da cafeteria
+#   ./notocorda --listar              mostra os mapas disponíveis
+#   ./notocorda ../meu-vault          abre a PASTA da documentação de outro mapa
+#   ./notocorda --web                 só serve no navegador, sem janela
 #
 # Funciona de qualquer diretório: resolve a raiz do repositório a partir do
 # próprio arquivo, inclusive quando chamado por link simbólico em ~/.local/bin.

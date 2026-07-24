@@ -81,9 +81,9 @@ python3 -m venv --system-site-packages .venv   # o venv precisa enxergá-las
 Outros usos:
 
 ```bash
-./notocorda --listar                          # que mapas existem por perto
-./notocorda ../meu-vault/generated/graph.json # o mapa não precisa morar aqui
-./notocorda --web 8137                        # só serve, sem janela nativa
+./notocorda --listar           # que mapas existem por perto
+./notocorda ../meu-vault       # a PASTA da documentação — compila e abre
+./notocorda --web 8137         # só serve, sem janela nativa
 ```
 
 ## Como está organizado
@@ -101,8 +101,11 @@ A interface é **uma só** para desktop e web: `viewer/bridge.js` é o único
 arquivo que sabe onde está rodando. Hoje há uma janela nativa; amanhã, um
 servidor com login e leitura do git — sem tela nova.
 
-E a ferramenta não pertence a mapa nenhum: `./notocorda <caminho>` abre
-qualquer `graph.json` válido, esteja ele neste repositório ou não.
+E a ferramenta não pertence a mapa nenhum: aponte `./notocorda` para a
+**pasta da documentação** de qualquer organização, dentro ou fora deste
+repositório. Ela compila os Markdown se o grafo faltar ou estiver velho — de
+modo que o que se abre é sempre a pasta que se escreve, nunca o arquivo
+derivado.
 
 ## Estado
 
