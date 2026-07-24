@@ -1,0 +1,1413 @@
+{
+  "schema_version": "0.2",
+  "generated_at": "2026-07-24T20:24:21.384792Z",
+  "source": {
+    "commit": null,
+    "dirty": true
+  },
+  "nodes": [
+    {
+      "id": "capability.conhecer-o-cliente",
+      "type": "spine",
+      "name": "Conhecer o cliente",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de saber quem compra, o que prefere e com que frequência volta.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.conhecer-o-cliente.md"
+      }
+    },
+    {
+      "id": "capability.garantir-consistencia-da-bebida",
+      "type": "spine",
+      "name": "Garantir consistência da bebida",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa preparando.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.garantir-consistencia-da-bebida.md"
+      }
+    },
+    {
+      "id": "capability.garantir-insumos",
+      "type": "spine",
+      "name": "Garantir insumos",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação precisa deles.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.garantir-insumos.md"
+      }
+    },
+    {
+      "id": "capability.garantir-transferencia-correta",
+      "type": "spine",
+      "name": "Garantir transferência correta",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.garantir-transferencia-correta.md"
+      }
+    },
+    {
+      "id": "capability.gerenciar-equipe",
+      "type": "spine",
+      "name": "Gerenciar equipe",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.",
+      "areas": [
+        "area.pessoas"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.gerenciar-equipe.md"
+      }
+    },
+    {
+      "id": "capability.gerenciar-pedidos",
+      "type": "spine",
+      "name": "Gerenciar pedidos",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega ou resolução.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.gerenciar-pedidos.md"
+      }
+    },
+    {
+      "id": "capability.honrar-compromissos-financeiros",
+      "type": "spine",
+      "name": "Honrar compromissos financeiros",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais contas devidas — no valor e no prazo acordados.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.honrar-compromissos-financeiros.md"
+      }
+    },
+    {
+      "id": "capability.processar-pagamentos",
+      "type": "spine",
+      "name": "Processar pagamentos",
+      "status": "active",
+      "spine_kind": "capability",
+      "confidence": "hypothesis",
+      "definition": "Capacidade de cobrar do cliente o valor correto no ato da venda e reconhecer esse recebimento no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada de honrar compromissos financeiros.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "source": {
+        "path": "spine/capabilities/capability.processar-pagamentos.md"
+      }
+    },
+    {
+      "id": "event.entrega-de-insumos-aceita",
+      "type": "spine",
+      "name": "Entrega de insumos aceita",
+      "status": "active",
+      "spine_kind": "event",
+      "confidence": "hypothesis",
+      "definition": "Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "source": {
+        "path": "spine/events/event.entrega-de-insumos-aceita.md"
+      }
+    },
+    {
+      "id": "invariant.caixa-sempre-conciliado",
+      "type": "spine",
+      "name": "Caixa sempre conciliado",
+      "status": "active",
+      "spine_kind": "invariant",
+      "confidence": "hypothesis",
+      "definition": "O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa batem com o que foi registrado.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "source": {
+        "path": "spine/invariants/invariant.caixa-sempre-conciliado.md"
+      }
+    },
+    {
+      "id": "invariant.insumo-vencido-nao-utilizado",
+      "type": "spine",
+      "name": "Insumo vencido não é utilizado",
+      "status": "active",
+      "spine_kind": "invariant",
+      "confidence": "hypothesis",
+      "definition": "O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de uma bebida.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/invariants/invariant.insumo-vencido-nao-utilizado.md"
+      }
+    },
+    {
+      "id": "objective.servir-cafe-rentavel",
+      "type": "spine",
+      "name": "Servir café com qualidade e margem",
+      "status": "active",
+      "spine_kind": "objective",
+      "confidence": "hypothesis",
+      "definition": "Resultado desejado: servir bebidas dentro do padrão da casa, com uma margem que sustente o negócio no longo prazo.",
+      "areas": [],
+      "source": {
+        "path": "spine/objectives/objective.servir-cafe-rentavel.md"
+      }
+    },
+    {
+      "id": "obligation.pagar-fornecedor",
+      "type": "spine",
+      "name": "Pagar fornecedor",
+      "status": "active",
+      "spine_kind": "obligation",
+      "confidence": "hypothesis",
+      "definition": "O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega de insumos.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "source": {
+        "path": "spine/obligations/obligation.pagar-fornecedor.md"
+      }
+    },
+    {
+      "id": "value-stage.abastecer-operacao",
+      "type": "spine",
+      "name": "Abastecer operação",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias para operar o dia.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.abastecer-operacao.md"
+      }
+    },
+    {
+      "id": "value-stage.coletar-pedido",
+      "type": "spine",
+      "name": "Coletar pedido",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: a intenção de compra do cliente é capturada de forma acionável, qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.coletar-pedido.md"
+      }
+    },
+    {
+      "id": "value-stage.disponibilizar-produto",
+      "type": "spine",
+      "name": "Disponibilizar produto",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado de terceiros para revenda.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.disponibilizar-produto.md"
+      }
+    },
+    {
+      "id": "value-stage.fidelizar-cliente",
+      "type": "spine",
+      "name": "Fidelizar cliente",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.fidelizar-cliente.md"
+      }
+    },
+    {
+      "id": "value-stage.preparar-loja",
+      "type": "spine",
+      "name": "Preparar loja",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada antes de receber o primeiro cliente.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.preparar-loja.md"
+      }
+    },
+    {
+      "id": "value-stage.receber-pagamento",
+      "type": "spine",
+      "name": "Receber pagamento",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: o pagamento é recebido e reconhecido pela operação.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.receber-pagamento.md"
+      }
+    },
+    {
+      "id": "value-stage.transferir-posse-ao-cliente",
+      "type": "spine",
+      "name": "Transferir posse ao cliente",
+      "status": "active",
+      "spine_kind": "value-stage",
+      "confidence": "hypothesis",
+      "definition": "Transformação necessária: a posse do produto passa para o cliente certo — por entrega, retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "source": {
+        "path": "spine/value-stages/value-stage.transferir-posse-ao-cliente.md"
+      }
+    },
+    {
+      "id": "realization.abertura-e-fechamento-da-loja",
+      "type": "realization",
+      "name": "Abertura e fechamento da loja",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Checklist impresso, fixado atrás do balcão, com os passos de abertura (ligar equipamentos, conferir estoque de leite e copos, montar o caixa) e de fechamento (limpar máquinas, guardar insumos perecíveis, conferir caixa). Cada turno assina a linha correspondente.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.abertura-e-fechamento-da-loja.md"
+      }
+    },
+    {
+      "id": "realization.compra-semanal-de-insumos",
+      "type": "realization",
+      "name": "Compra semanal de insumos",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Compra de insumos feita uma vez por semana, geralmente às segundas, por estimativa da gerente — sem previsão formal de demanda. Parte dos itens é comprada no atacadista da região, parte é pedida diretamente a fornecedores habituais.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "realizations/realization.compra-semanal-de-insumos.md"
+      }
+    },
+    {
+      "id": "realization.conferencia-de-caixa-no-fechamento",
+      "type": "realization",
+      "name": "Conferência de caixa no fechamento",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Ao final do dia, a pessoa responsável pelo fechamento soma manualmente o extrato da maquininha e compara com o total anotado na planilha de vendas, lançando a diferença — quando existe — em uma célula de \"ajuste\".",
+      "areas": [
+        "area.financeiro",
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.conferencia-de-caixa-no-fechamento.md"
+      }
+    },
+    {
+      "id": "realization.conferencia-de-recebimento",
+      "type": "realization",
+      "name": "Conferência de recebimento",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Quando a entrega chega, quem está no balcão confere as caixas contra o que foi pedido no grupo de WhatsApp, olha validade e estado dos itens e guarda a nota que veio junto. Divergência é resolvida na hora, por mensagem ao fornecedor; não há registro formal do aceite.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.conferencia-de-recebimento.md"
+      }
+    },
+    {
+      "id": "realization.controle-de-validade-na-prateleira",
+      "type": "realization",
+      "name": "Controle de validade na prateleira",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "A equipe organiza os insumos na prateleira por ordem de validade (o mais próximo do vencimento na frente) e confere visualmente antes de cada turno. Não há etiqueta, planilha ou sistema de apoio — só a rotina de quem está de plantão.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.controle-de-validade-na-prateleira.md"
+      }
+    },
+    {
+      "id": "realization.entrega-por-chamada-no-balcao",
+      "type": "realization",
+      "name": "Entrega por chamada no balcão",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Quando a bebida fica pronta, o barista chama em voz alta o nome anotado na comanda e entrega no balcão de retirada. Um só ponto de entrega, sem senha impressa nem tela de chamada.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.entrega-por-chamada-no-balcao.md"
+      }
+    },
+    {
+      "id": "realization.escala-manual-da-equipe",
+      "type": "realization",
+      "name": "Escala manual da equipe",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "A escala semanal é montada à mão pela gerente, em planilha, com base na disponibilidade informada pela equipe.",
+      "areas": [
+        "area.pessoas"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.escala-manual-da-equipe.md"
+      }
+    },
+    {
+      "id": "realization.limpeza-de-fim-de-turno",
+      "type": "realization",
+      "name": "Limpeza de fim de turno",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Checklist de limpeza executado pela equipe no fechamento de cada turno, antes de liberar a loja.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.limpeza-de-fim-de-turno.md"
+      }
+    },
+    {
+      "id": "realization.loja-unica-com-estoque-local",
+      "type": "realization",
+      "name": "Loja única com estoque local",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Modelo atual de operação: uma única loja, com estoque físico mantido no próprio local, abastecida por compra direta a fornecedores e atacadistas.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.loja-unica-com-estoque-local.md"
+      }
+    },
+    {
+      "id": "realization.padrao-de-preparo-no-balcao",
+      "type": "realization",
+      "name": "Padrão de preparo no balcão",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Ficha de preparo afixada atrás da máquina, com a dose de café, a quantidade de leite e o tempo de extração de cada bebida do cardápio. Todo barista novo é treinado por acompanhamento nos primeiros turnos até reproduzir o padrão sem consultar a ficha.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.padrao-de-preparo-no-balcao.md"
+      }
+    },
+    {
+      "id": "realization.pagamento-ao-fornecedor",
+      "type": "realization",
+      "name": "Pagamento ao fornecedor",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "A gerente paga cada fornecedor pelo aplicativo do banco, por boleto ou PIX, na data combinada na negociação — em geral a partir do valor anotado na nota que veio com a entrega. Não há contas a pagar formal: os vencimentos ficam na memória e na conversa do grupo de WhatsApp.",
+      "areas": [
+        "area.financeiro",
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.pagamento-ao-fornecedor.md"
+      }
+    },
+    {
+      "id": "realization.pagamento-na-maquininha",
+      "type": "realization",
+      "name": "Pagamento na maquininha",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "A cobrança é feita na maquininha de cartão ao final do pedido, sem integração com o restante da operação.",
+      "areas": [
+        "area.financeiro",
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica",
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.pagamento-na-maquininha.md"
+      }
+    },
+    {
+      "id": "realization.pedido-no-balcao",
+      "type": "realization",
+      "name": "Pedido no balcão",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "O cliente informa o pedido diretamente ao barista no balcão.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "realizations/realization.pedido-no-balcao.md"
+      }
+    },
+    {
+      "id": "realization.pedido-pelo-app",
+      "type": "realization",
+      "name": "Pedido pelo app",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "O cliente registra e acompanha o pedido pelo aplicativo, sem precisar falar com o barista no balcão.",
+      "areas": [
+        "area.operacoes",
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.pedido-pelo-app.md"
+      }
+    },
+    {
+      "id": "realization.programa-de-fidelidade",
+      "type": "realization",
+      "name": "Programa de fidelidade",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Programa de pontos e recompensas calculado a partir do histórico de compras do cliente no aplicativo.",
+      "areas": [
+        "area.operacoes",
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.programa-de-fidelidade.md"
+      }
+    },
+    {
+      "id": "realization.reposicao-automatica-de-insumos",
+      "type": "realization",
+      "name": "Reposição automática de insumos",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Pedido de compra sugerido automaticamente a partir de uma previsão de demanda por item e dia da semana, substituindo a estimativa manual.",
+      "areas": [
+        "area.suprimentos",
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "realizations/realization.reposicao-automatica-de-insumos.md"
+      }
+    },
+    {
+      "id": "system.aplicativo-cafeteria",
+      "type": "system",
+      "name": "Aplicativo da cafeteria",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Aplicativo proposto para pedidos, pagamento e fidelidade do cliente, ainda não construído.",
+      "areas": [
+        "area.transformacao-digital",
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "systems/system.aplicativo-cafeteria.md"
+      }
+    },
+    {
+      "id": "system.grupo-whatsapp-fornecedor",
+      "type": "system",
+      "name": "Grupo de WhatsApp com fornecedor",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Grupo de WhatsApp entre a gerente e o representante do principal fornecedor de insumos, usado para fazer pedidos, confirmar entregas e avisar sobre atrasos. Não há pedido formal nem registro fora das mensagens trocadas.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "systems/system.grupo-whatsapp-fornecedor.md"
+      }
+    },
+    {
+      "id": "system.pos-balcao",
+      "type": "system",
+      "name": "POS do balcão",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Ponto de venda instalado no balcão — a \"maquininha\" que a equipe usa para cobrar o cliente. Não tem integração com estoque, planilha de vendas ou qualquer outro sistema: cada cobrança fica isolada no extrato do próprio equipamento.",
+      "areas": [
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "systems/system.pos-balcao.md"
+      }
+    },
+    {
+      "id": "system.previsao-de-demanda",
+      "type": "system",
+      "name": "Previsão de demanda",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Modelo simples de previsão de consumo por item e dia da semana, proposto para o cenário To-Be \"Suprimento inteligente\".",
+      "areas": [
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "systems/system.previsao-de-demanda.md"
+      }
+    },
+    {
+      "id": "data.demanda-prevista",
+      "type": "data",
+      "name": "Demanda prevista",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Previsão de consumo por insumo e dia, calculada a partir do histórico de vendas.",
+      "areas": [
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "data/data.demanda-prevista.md"
+      }
+    },
+    {
+      "id": "data.historico-de-vendas",
+      "type": "data",
+      "name": "Histórico de vendas",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Vendas por item, dia e hora, registradas automaticamente pelo ponto de venda (POS do balcão) no momento da cobrança.",
+      "areas": [
+        "area.transformacao-digital"
+      ],
+      "source": {
+        "path": "data/data.historico-de-vendas.md"
+      }
+    },
+    {
+      "id": "data.pedidos-do-aplicativo",
+      "type": "data",
+      "name": "Pedidos do aplicativo",
+      "status": "draft",
+      "confidence": "hypothesis",
+      "definition": "Pedidos, pagamentos e preferências do cliente capturados pelo aplicativo proposto, ainda não existente.",
+      "areas": [
+        "area.transformacao-digital"
+      ],
+      "scenarios": [
+        "scenario.loja-inteligente"
+      ],
+      "source": {
+        "path": "data/data.pedidos-do-aplicativo.md"
+      }
+    },
+    {
+      "id": "data.planilha-de-vendas",
+      "type": "data",
+      "name": "Planilha de vendas",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Planilha mantida manualmente pela gerente, onde cada venda do dia é lançada à mão a partir do que ela observa no balcão — uma segunda contagem, paralela ao extrato da maquininha, usada para conferência.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "data/data.planilha-de-vendas.md"
+      }
+    },
+    {
+      "id": "data.registro-manual-de-pedidos",
+      "type": "data",
+      "name": "Registro manual de pedidos",
+      "status": "active",
+      "confidence": "hypothesis",
+      "definition": "Comandas de papel e anotações feitas no balcão pelo barista, um pedido por vez. É o único registro do que foi pedido antes da produção.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "data/data.registro-manual-de-pedidos.md"
+      }
+    },
+    {
+      "id": "evidence.entrevista-barista-2026-06",
+      "type": "evidence",
+      "name": "Entrevista com barista (jun/2026)",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Entrevista conduzida em 15/06/2026 com um barista sobre o horário de pico da manhã. Fato observado relatado pelo próprio barista: \"das 7h30 às 9h eu não consigo tirar pedido e fazer bebida ao mesmo tempo, a fila só cresce\".",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.entrevista-barista-2026-06.md"
+      }
+    },
+    {
+      "id": "evidence.entrevista-gerente-loja-2026-07",
+      "type": "evidence",
+      "name": "Entrevista com gerente da loja (jul/2026)",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Entrevista conduzida em 10/07/2026 com a gerente da loja única, sobre como o atendimento no balcão funciona hoje na prática. Fato observado relatado pela gerente, não opinião de terceiros.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.entrevista-gerente-loja-2026-07.md"
+      }
+    },
+    {
+      "id": "evidence.foto-estoque-2026-05",
+      "type": "evidence",
+      "name": "Fotos de estoque (mai/2026)",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Registro fotográfico feito em 20/05/2026 da prateleira de insumos, mostrando quatro caixas de leite e dois pacotes de pão de forma vencidos há mais de dois dias, ainda armazenados junto aos itens válidos. Fato observado, não relato de terceiros.",
+      "areas": [
+        "area.operacoes",
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.foto-estoque-2026-05.md"
+      }
+    },
+    {
+      "id": "evidence.historico-de-faltas",
+      "type": "evidence",
+      "name": "Histórico de faltas de insumo",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Levantamento das rupturas de insumo registradas informalmente pela equipe nos últimos três meses (abril–junho de 2026), a partir dos avisos de \"acabou\" passados no grupo de WhatsApp da loja.",
+      "areas": [
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.historico-de-faltas.md"
+      }
+    },
+    {
+      "id": "evidence.planilha-fechamento-caixa-2026-06",
+      "type": "evidence",
+      "name": "Planilha de fechamento de caixa (jun/2026)",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Extrato dos fechamentos de caixa de junho de 2026, mostrando divergência entre o total da maquininha e o total da planilha de vendas em 6 dos 26 dias operados no mês, sempre lançada na coluna \"ajuste\" sem justificativa registrada. Fato observado a partir do próprio arquivo.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.planilha-fechamento-caixa-2026-06.md"
+      }
+    },
+    {
+      "id": "evidence.registro-turnos-sem-substituto-2026-07",
+      "type": "evidence",
+      "name": "Registro de turnos sem substituto (jul/2026)",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Levantamento da escala de junho e julho de 2026 mostrando que, nos três dias em que a gerente faltou por motivo de saúde, não havia substituto capaz de fechar o caixa nem renegociar entrega com o fornecedor — tarefas ficaram pendentes até o retorno dela. Fato observado a partir da própria escala.",
+      "areas": [
+        "area.pessoas"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "evidence/evidence.registro-turnos-sem-substituto-2026-07.md"
+      }
+    },
+    {
+      "id": "problem.caixa-que-nao-fecha",
+      "type": "problem",
+      "name": "Caixa que não fecha",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Em parte dos fechamentos, o total da maquininha e o total da planilha de vendas não batem, e a diferença é lançada como \"ajuste\" sem investigação da causa.",
+      "areas": [
+        "area.financeiro"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "problems/problem.caixa-que-nao-fecha.md"
+      }
+    },
+    {
+      "id": "problem.dependencia-de-uma-pessoa-que-sabe-tudo",
+      "type": "problem",
+      "name": "Dependência de uma pessoa que sabe tudo",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "A gerente é a única pessoa que sabe montar a escala, fechar o caixa corretamente, negociar com o fornecedor e destravar problemas do dia a dia. Quando ela falta, a operação improvisa.",
+      "areas": [
+        "area.pessoas",
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "problems/problem.dependencia-de-uma-pessoa-que-sabe-tudo.md"
+      }
+    },
+    {
+      "id": "problem.fila-no-horario-de-pico",
+      "type": "problem",
+      "name": "Fila no horário de pico",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Entre 7h30 e 9h, a fila para pedir no balcão chega a ultrapassar dez pessoas, porque cada pedido depende do barista anotar, repetir e só então iniciar a produção.",
+      "areas": [
+        "area.operacoes"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "problems/problem.fila-no-horario-de-pico.md"
+      }
+    },
+    {
+      "id": "problem.perda-por-validade",
+      "type": "problem",
+      "name": "Perda por validade",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Parte dos insumos comprados na compra semanal vence na prateleira antes de ser usada, principalmente leite e itens de padaria, gerando descarte recorrente.",
+      "areas": [
+        "area.operacoes",
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "problems/problem.perda-por-validade.md"
+      }
+    },
+    {
+      "id": "problem.ruptura-de-estoque",
+      "type": "problem",
+      "name": "Ruptura de estoque",
+      "status": "active",
+      "confidence": "certified",
+      "definition": "Indisponibilidade de insumo necessário para atender a demanda.",
+      "areas": [
+        "area.operacoes",
+        "area.suprimentos"
+      ],
+      "scenarios": [
+        "scenario.loja-unica"
+      ],
+      "source": {
+        "path": "problems/problem.ruptura-de-estoque.md"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "capability.conhecer-o-cliente",
+      "type": "enables",
+      "target": "value-stage.fidelizar-cliente"
+    },
+    {
+      "source": "capability.garantir-consistencia-da-bebida",
+      "type": "enables",
+      "target": "value-stage.disponibilizar-produto"
+    },
+    {
+      "source": "capability.garantir-insumos",
+      "type": "enables",
+      "target": "value-stage.abastecer-operacao"
+    },
+    {
+      "source": "capability.garantir-transferencia-correta",
+      "type": "enables",
+      "target": "value-stage.transferir-posse-ao-cliente"
+    },
+    {
+      "source": "capability.gerenciar-equipe",
+      "type": "enables",
+      "target": "value-stage.preparar-loja"
+    },
+    {
+      "source": "capability.gerenciar-pedidos",
+      "type": "enables",
+      "target": "value-stage.coletar-pedido"
+    },
+    {
+      "source": "capability.processar-pagamentos",
+      "type": "enables",
+      "target": "value-stage.receber-pagamento"
+    },
+    {
+      "source": "event.entrega-de-insumos-aceita",
+      "type": "creates",
+      "target": "obligation.pagar-fornecedor"
+    },
+    {
+      "source": "invariant.caixa-sempre-conciliado",
+      "type": "constrains",
+      "target": "capability.processar-pagamentos"
+    },
+    {
+      "source": "invariant.caixa-sempre-conciliado",
+      "type": "constrains",
+      "target": "capability.honrar-compromissos-financeiros"
+    },
+    {
+      "source": "invariant.insumo-vencido-nao-utilizado",
+      "type": "constrains",
+      "target": "capability.garantir-consistencia-da-bebida"
+    },
+    {
+      "source": "obligation.pagar-fornecedor",
+      "type": "requires",
+      "target": "capability.honrar-compromissos-financeiros"
+    },
+    {
+      "source": "value-stage.abastecer-operacao",
+      "type": "advances",
+      "target": "value-stage.preparar-loja"
+    },
+    {
+      "source": "value-stage.abastecer-operacao",
+      "type": "requires",
+      "target": "event.entrega-de-insumos-aceita"
+    },
+    {
+      "source": "value-stage.coletar-pedido",
+      "type": "advances",
+      "target": "value-stage.disponibilizar-produto"
+    },
+    {
+      "source": "value-stage.disponibilizar-produto",
+      "type": "advances",
+      "target": "value-stage.transferir-posse-ao-cliente"
+    },
+    {
+      "source": "value-stage.fidelizar-cliente",
+      "type": "advances",
+      "target": "objective.servir-cafe-rentavel"
+    },
+    {
+      "source": "value-stage.preparar-loja",
+      "type": "advances",
+      "target": "value-stage.coletar-pedido"
+    },
+    {
+      "source": "value-stage.receber-pagamento",
+      "type": "advances",
+      "target": "value-stage.fidelizar-cliente"
+    },
+    {
+      "source": "value-stage.transferir-posse-ao-cliente",
+      "type": "advances",
+      "target": "value-stage.receber-pagamento"
+    },
+    {
+      "source": "realization.abertura-e-fechamento-da-loja",
+      "type": "realizes",
+      "target": "value-stage.preparar-loja"
+    },
+    {
+      "source": "realization.compra-semanal-de-insumos",
+      "type": "realizes",
+      "target": "capability.garantir-insumos"
+    },
+    {
+      "source": "realization.conferencia-de-caixa-no-fechamento",
+      "type": "realizes",
+      "target": "invariant.caixa-sempre-conciliado"
+    },
+    {
+      "source": "realization.conferencia-de-caixa-no-fechamento",
+      "type": "uses",
+      "target": "data.planilha-de-vendas"
+    },
+    {
+      "source": "realization.conferencia-de-recebimento",
+      "type": "realizes",
+      "target": "event.entrega-de-insumos-aceita"
+    },
+    {
+      "source": "realization.controle-de-validade-na-prateleira",
+      "type": "realizes",
+      "target": "invariant.insumo-vencido-nao-utilizado"
+    },
+    {
+      "source": "realization.entrega-por-chamada-no-balcao",
+      "type": "realizes",
+      "target": "capability.garantir-transferencia-correta"
+    },
+    {
+      "source": "realization.escala-manual-da-equipe",
+      "type": "realizes",
+      "target": "capability.gerenciar-equipe"
+    },
+    {
+      "source": "realization.limpeza-de-fim-de-turno",
+      "type": "realizes",
+      "target": "value-stage.preparar-loja"
+    },
+    {
+      "source": "realization.loja-unica-com-estoque-local",
+      "type": "realizes",
+      "target": "value-stage.abastecer-operacao"
+    },
+    {
+      "source": "realization.padrao-de-preparo-no-balcao",
+      "type": "realizes",
+      "target": "capability.garantir-consistencia-da-bebida"
+    },
+    {
+      "source": "realization.pagamento-ao-fornecedor",
+      "type": "realizes",
+      "target": "capability.honrar-compromissos-financeiros"
+    },
+    {
+      "source": "realization.pagamento-na-maquininha",
+      "type": "realizes",
+      "target": "capability.processar-pagamentos"
+    },
+    {
+      "source": "realization.pedido-no-balcao",
+      "type": "realizes",
+      "target": "capability.gerenciar-pedidos"
+    },
+    {
+      "source": "realization.pedido-no-balcao",
+      "type": "uses",
+      "target": "data.registro-manual-de-pedidos"
+    },
+    {
+      "source": "realization.pedido-pelo-app",
+      "type": "realizes",
+      "target": "capability.gerenciar-pedidos"
+    },
+    {
+      "source": "realization.pedido-pelo-app",
+      "type": "uses",
+      "target": "data.pedidos-do-aplicativo"
+    },
+    {
+      "source": "realization.pedido-pelo-app",
+      "type": "replaces",
+      "target": "realization.pedido-no-balcao"
+    },
+    {
+      "source": "realization.programa-de-fidelidade",
+      "type": "realizes",
+      "target": "capability.conhecer-o-cliente"
+    },
+    {
+      "source": "realization.programa-de-fidelidade",
+      "type": "realizes",
+      "target": "value-stage.fidelizar-cliente"
+    },
+    {
+      "source": "realization.programa-de-fidelidade",
+      "type": "uses",
+      "target": "data.pedidos-do-aplicativo"
+    },
+    {
+      "source": "realization.reposicao-automatica-de-insumos",
+      "type": "realizes",
+      "target": "capability.garantir-insumos"
+    },
+    {
+      "source": "realization.reposicao-automatica-de-insumos",
+      "type": "replaces",
+      "target": "realization.compra-semanal-de-insumos"
+    },
+    {
+      "source": "realization.reposicao-automatica-de-insumos",
+      "type": "uses",
+      "target": "data.demanda-prevista"
+    },
+    {
+      "source": "realization.reposicao-automatica-de-insumos",
+      "type": "mitigates",
+      "target": "problem.ruptura-de-estoque"
+    },
+    {
+      "source": "system.aplicativo-cafeteria",
+      "type": "supports",
+      "target": "realization.pedido-pelo-app"
+    },
+    {
+      "source": "system.aplicativo-cafeteria",
+      "type": "supports",
+      "target": "realization.programa-de-fidelidade"
+    },
+    {
+      "source": "system.grupo-whatsapp-fornecedor",
+      "type": "supports",
+      "target": "realization.compra-semanal-de-insumos"
+    },
+    {
+      "source": "system.pos-balcao",
+      "type": "supports",
+      "target": "realization.pedido-no-balcao"
+    },
+    {
+      "source": "system.pos-balcao",
+      "type": "supports",
+      "target": "realization.pagamento-na-maquininha"
+    },
+    {
+      "source": "system.previsao-de-demanda",
+      "type": "supports",
+      "target": "realization.reposicao-automatica-de-insumos"
+    },
+    {
+      "source": "system.previsao-de-demanda",
+      "type": "uses",
+      "target": "data.historico-de-vendas"
+    },
+    {
+      "source": "data.demanda-prevista",
+      "type": "measures",
+      "target": "capability.garantir-insumos"
+    },
+    {
+      "source": "data.historico-de-vendas",
+      "type": "records",
+      "target": "value-stage.receber-pagamento"
+    },
+    {
+      "source": "data.planilha-de-vendas",
+      "type": "records",
+      "target": "value-stage.receber-pagamento"
+    },
+    {
+      "source": "data.registro-manual-de-pedidos",
+      "type": "records",
+      "target": "value-stage.coletar-pedido"
+    },
+    {
+      "source": "evidence.entrevista-barista-2026-06",
+      "type": "evidences",
+      "target": "problem.fila-no-horario-de-pico"
+    },
+    {
+      "source": "evidence.entrevista-gerente-loja-2026-07",
+      "type": "evidences",
+      "target": "realization.pedido-no-balcao"
+    },
+    {
+      "source": "evidence.foto-estoque-2026-05",
+      "type": "evidences",
+      "target": "problem.perda-por-validade"
+    },
+    {
+      "source": "evidence.historico-de-faltas",
+      "type": "evidences",
+      "target": "problem.ruptura-de-estoque"
+    },
+    {
+      "source": "evidence.planilha-fechamento-caixa-2026-06",
+      "type": "evidences",
+      "target": "problem.caixa-que-nao-fecha"
+    },
+    {
+      "source": "evidence.registro-turnos-sem-substituto-2026-07",
+      "type": "evidences",
+      "target": "problem.dependencia-de-uma-pessoa-que-sabe-tudo"
+    },
+    {
+      "source": "problem.caixa-que-nao-fecha",
+      "type": "affects",
+      "target": "invariant.caixa-sempre-conciliado"
+    },
+    {
+      "source": "problem.caixa-que-nao-fecha",
+      "type": "motivates",
+      "target": "scenario.loja-inteligente"
+    },
+    {
+      "source": "problem.dependencia-de-uma-pessoa-que-sabe-tudo",
+      "type": "affects",
+      "target": "capability.gerenciar-equipe"
+    },
+    {
+      "source": "problem.dependencia-de-uma-pessoa-que-sabe-tudo",
+      "type": "affects",
+      "target": "realization.escala-manual-da-equipe"
+    },
+    {
+      "source": "problem.fila-no-horario-de-pico",
+      "type": "affects",
+      "target": "value-stage.coletar-pedido"
+    },
+    {
+      "source": "problem.fila-no-horario-de-pico",
+      "type": "motivates",
+      "target": "scenario.loja-inteligente"
+    },
+    {
+      "source": "problem.perda-por-validade",
+      "type": "affects",
+      "target": "invariant.insumo-vencido-nao-utilizado"
+    },
+    {
+      "source": "problem.perda-por-validade",
+      "type": "motivates",
+      "target": "scenario.loja-inteligente"
+    },
+    {
+      "source": "problem.ruptura-de-estoque",
+      "type": "affects",
+      "target": "capability.garantir-insumos"
+    },
+    {
+      "source": "problem.ruptura-de-estoque",
+      "type": "affects",
+      "target": "realization.compra-semanal-de-insumos"
+    },
+    {
+      "source": "problem.ruptura-de-estoque",
+      "type": "motivates",
+      "target": "scenario.loja-inteligente"
+    }
+  ],
+  "areas": [
+    {
+      "id": "area.financeiro",
+      "name": "Financeiro",
+      "status": "active",
+      "definition": "",
+      "source": {
+        "path": "areas/area.financeiro.md"
+      }
+    },
+    {
+      "id": "area.operacoes",
+      "name": "Operações",
+      "status": "active",
+      "definition": "",
+      "source": {
+        "path": "areas/area.operacoes.md"
+      }
+    },
+    {
+      "id": "area.pessoas",
+      "name": "Pessoas",
+      "status": "active",
+      "definition": "",
+      "source": {
+        "path": "areas/area.pessoas.md"
+      }
+    },
+    {
+      "id": "area.suprimentos",
+      "name": "Suprimentos",
+      "status": "active",
+      "definition": "",
+      "source": {
+        "path": "areas/area.suprimentos.md"
+      }
+    },
+    {
+      "id": "area.transformacao-digital",
+      "name": "Transformação Digital",
+      "status": "active",
+      "definition": "",
+      "source": {
+        "path": "areas/area.transformacao-digital.md"
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario.loja-inteligente",
+      "name": "Loja inteligente",
+      "status": "proposed",
+      "baseline": "scenario.loja-unica",
+      "definition": "",
+      "source": {
+        "path": "scenarios/scenario.loja-inteligente.md"
+      }
+    },
+    {
+      "id": "scenario.loja-unica",
+      "name": "As-Is · Loja única",
+      "status": "current",
+      "baseline": null,
+      "definition": "",
+      "source": {
+        "path": "scenarios/scenario.loja-unica.md"
+      }
+    }
+  ],
+  "views": [
+    {
+      "id": "view.cafeteria-visao-geral",
+      "name": "Cafeteria — visão geral",
+      "scenario_levels": [
+        {
+          "level": -1,
+          "scenario": "scenario.loja-unica"
+        },
+        {
+          "level": 0,
+          "scenario": null
+        },
+        {
+          "level": 1,
+          "scenario": "scenario.loja-inteligente"
+        }
+      ],
+      "visible_types": [
+        "spine",
+        "realization",
+        "system",
+        "data",
+        "evidence",
+        "problem"
+      ],
+      "show_area_clouds": true,
+      "show_area_edges": false,
+      "source": {
+        "path": "views/view.cafeteria-visao-geral.md"
+      }
+    }
+  ],
+  "diagnostics": {
+    "errors": [],
+    "warnings": [],
+    "gaps": []
+  }
+}

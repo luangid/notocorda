@@ -1,0 +1,28 @@
+Notocorda
+Copyright (c) 2026 Serlares
+
+Este projeto nasceu de um trabalho de mapeamento do modelo operacional da
+Serlares, empresa de alimentação coletiva. O método e a ferramenta são
+publicados aqui; o mapa da empresa, não — o que acompanha o repositório é
+uma cafeteria fictícia, escrita para demonstrar o formato.
+
+Código e textos sob a licença MIT (ver LICENSE).
+
+--------------------------------------------------------------------------
+Fontes redistribuídas em viewer/fonts/
+--------------------------------------------------------------------------
+
+Fraunces
+  Copyright 2018 The Fraunces Project Authors
+  https://github.com/undercasetype/Fraunces
+  SIL Open Font License 1.1 — viewer/fonts/LICENSE-Fraunces.txt
+
+IBM Plex Sans e IBM Plex Mono
+  Copyright (c) 2017 IBM Corp., com Reserved Font Name "Plex"
+  https://github.com/IBM/plex
+  SIL Open Font License 1.1 — viewer/fonts/LICENSE-IBMPlex.txt
+
+Os arquivos .woff2 são subconjuntos (latin e latin-ext) das famílias
+originais, sem alteração de desenho ou de nome de família. A OFL permite a
+redistribuição, inclusive embutida em software, desde que a licença
+acompanhe os arquivos — é o que os dois arquivos acima fazem.

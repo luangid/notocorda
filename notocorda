@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Notocorda — lançador de terminal.
+#
+#   ./notocorda                                   abre o exemplo da cafeteria
+#   ./notocorda --listar                          mostra os grafos disponíveis
+#   ./notocorda ../meu-vault/generated/graph.json abre outro mapa
+#   ./notocorda --web                             só serve no navegador, sem janela
+#
+# Funciona de qualquer diretório: resolve a raiz do repositório a partir do
+# próprio arquivo, inclusive quando chamado por link simbólico em ~/.local/bin.
+set -euo pipefail
+
+ORIGEM="${BASH_SOURCE[0]}"
+while [ -L "$ORIGEM" ]; do
+  DESTINO="$(readlink "$ORIGEM")"
+  case "$DESTINO" in
+    /*) ORIGEM="$DESTINO" ;;
+    *)  ORIGEM="$(cd -P "$(dirname "$ORIGEM")" && pwd)/$DESTINO" ;;
+  esac
+done
+RAIZ="$(cd -P "$(dirname "$ORIGEM")" && pwd)"
+
+if [ -x "$RAIZ/.venv/bin/python" ]; then
+  PY="$RAIZ/.venv/bin/python"
+else
+  PY="$(command -v python3)"
+  echo "aviso: .venv não encontrado — usando $PY (a janela nativa precisa de pywebview)" >&2
+fi
+
+# --web: serve a pasta e abre no navegador, sem depender da janela nativa.
+# Só alcança mapas debaixo do repositório; para um mapa de fora, use a janela.
+if [ "${1:-}" = "--web" ]; then
+  PORTA="${2:-8137}"
+  echo "Notocorda em http://localhost:$PORTA/viewer/"
+  cd "$RAIZ" && exec "$PY" -m http.server "$PORTA"
+fi
+
+exec "$PY" "$RAIZ/desktop/notocorda_desktop.py" "$@"

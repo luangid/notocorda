@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/luangid/notocorda/schemas/document.schema.json",
+  "title": "Notocorda — frontmatter de documento (autoria)",
+  "description": "Valida o frontmatter YAML de um documento de autoria. Contrato v0.2, espelho do Guia de Implementação §5. Relações NÃO vivem no frontmatter — são wikilinks tipados no corpo (Guia §6).",
+  "type": "object",
+  "required": ["id", "type", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*\\.[a-z0-9][a-z0-9.-]*$",
+      "description": "<categoria>.<kebab-case>. Permanente; igual ao nome do arquivo (sem .md); nunca reutilizado."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["spine", "realization", "system", "data", "evidence", "problem", "area", "scenario", "view"]
+    },
+    "spine_kind": {
+      "type": "string",
+      "enum": ["objective", "value-stage", "capability", "invariant", "event", "obligation"],
+      "description": "Obrigatório quando type: spine."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "active", "deprecated", "archived", "current", "proposed", "pilot", "rejected", "retired"],
+      "description": "draft|active|deprecated|archived para documentos; current|proposed|pilot|rejected|retired somente para type: scenario."
+    },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "areas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/wikilink" },
+      "description": "Pertencimento a áreas por wikilink: \"[[area.operacoes|Operações]]\". Vira propriedade derivada, não aresta."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/wikilink" },
+      "description": "Cenários em que o documento é válido, por wikilink. Ausente = válido em todos."
+    },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "valid_from": { "type": "string", "format": "date" },
+    "valid_to": { "type": "string", "format": "date" },
+    "recorded_at": { "type": "string", "format": "date" },
+    "confidence": { "type": "string", "enum": ["hypothesis", "certified", "validated"] },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string" },
+        "reviewed_at": { "type": "string", "format": "date" },
+        "review_due_at": { "type": "string", "format": "date" }
+      }
+    },
+    "baseline": {
+      "$ref": "#/$defs/wikilink",
+      "description": "Somente type: scenario — cenário com o qual este se compara."
+    },
+    "realization_kind": { "type": "string" },
+    "system_kind": { "type": "string" },
+    "data_kind": { "type": "string" },
+    "evidence_kind": { "type": "string" },
+    "problem_kind": { "type": "string" },
+    "scenario_levels": {
+      "type": "array",
+      "description": "Somente type: view — mapeia níveis do seletor a cenários (Guia §15).",
+      "items": {
+        "type": "object",
+        "required": ["level", "scenario"],
+        "additionalProperties": false,
+        "properties": {
+          "level": { "type": "integer" },
+          "scenario": {
+            "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/wikilink" }],
+            "description": "null = nível 0, a espinha dorsal."
+          }
+        }
+      }
+    },
+    "visible_types": { "type": "array", "items": { "type": "string" } },
+    "show_area_clouds": { "type": "boolean" },
+    "show_area_edges": { "type": "boolean" },
+    "layout": {
+      "type": "object",
+      "description": "Somente type: view — posições manuais por ID de nó.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["x", "y"],
+        "additionalProperties": false,
+        "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "spine" } } },
+      "then": { "required": ["spine_kind"] },
+      "else": { "properties": { "spine_kind": false } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "scenario" } } },
+      "then": {
+        "properties": { "status": { "enum": ["draft", "current", "proposed", "pilot", "rejected", "retired"] } }
+      },
+      "else": {
+        "properties": {
+          "status": { "enum": ["draft", "active", "deprecated", "archived"] },
+          "baseline": false
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "view" } } },
+      "else": { "properties": { "scenario_levels": false, "visible_types": false, "show_area_clouds": false, "show_area_edges": false, "layout": false } }
+    }
+  ],
+  "$defs": {
+    "wikilink": {
+      "type": "string",
+      "pattern": "^\\[\\[[a-z][a-z0-9-]*\\.[a-z0-9][a-z0-9.-]*(\\|[^\\]]+)?\\]\\]$",
+      "description": "\"[[id-do-documento|Título legível]]\" — destino lógico é o ID."
+    }
+  }
+}

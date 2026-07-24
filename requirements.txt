@@ -1,0 +1,7 @@
+# Compilador e validador (compiler/):
+PyYAML>=6.0
+jsonschema>=4.10
+
+# Janela nativa (desktop/) — usa o WebKit do próprio sistema.
+# Só para `./notocorda`; servir por HTTP e abrir no navegador dispensa.
+pywebview>=6.2

@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Mapas de organização não moram na ferramenta — ela abre o mapa que for.
+# Estas pastas existem por convenção do contrato de formatos; se alguém
+# compilar um vault aqui dentro, o resultado não vaza para o histórico.
+/generated/
+/views/
+/spine/

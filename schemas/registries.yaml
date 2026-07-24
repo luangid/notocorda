@@ -1,0 +1,60 @@
+# Registro de tipos e relações — Notocorda v0.2
+# Fonte: Guia de Implementação do Grafo em Camadas v0.2 (§4 tipos, §6.4 relações).
+# Vocabulário FECHADO: novo tipo só via governança (Guia §3.3).
+
+contract_version: "0.2"
+
+# ---- 6 tipos de caixa (famílias visuais da legenda — Guia §4.1) ----
+box_types:
+  spine:       { label_pt: Modelo essencial, description: Elemento da espinha dorsal; exige spine_kind. }
+  realization: { label_pt: Realizações,      description: Forma escolhida para realizar parte da espinha (processo, modelo operacional...). }
+  system:      { label_pt: Sistemas,         description: Sistema, ferramenta, integração ou automação. }
+  data:        { label_pt: Dados,            description: Tabela, API, arquivo, indicador ou produto de dados. }
+  evidence:    { label_pt: Evidências,       description: Documento, entrevista, consulta, decisão ou registro. }
+  problem:     { label_pt: Problemas,        description: Problema, risco, oportunidade ou suposição. }
+
+# ---- tipos internos da espinha (Guia §4.2) ----
+spine_kinds:
+  objective:   { label_pt: objetivo,        question: "Qual resultado ou condição desejada orienta o negócio?" }
+  value-stage: { label_pt: etapa de valor,  question: "Que transformação precisa acontecer no fluxo de valor?" }
+  capability:  { label_pt: capacidade,      question: "O que a empresa precisa ser capaz de fazer?" }
+  invariant:   { label_pt: invariante,      question: "O que deve permanecer verdadeiro?" }
+  event:       { label_pt: evento,          question: "Que acontecimento relevante altera o estado do negócio?" }
+  obligation:  { label_pt: obrigação,       question: "O que se torna devido, exigível ou necessário após um evento?" }
+
+# ---- documentos contextuais (Guia §4.3 — não são caixas da legenda) ----
+context_types:
+  area:     { label_pt: área,    representation: nuvem }
+  scenario: { label_pt: cenário, representation: seletor }
+  view:     { label_pt: visão,   representation: apresentação }
+
+# ---- status (Guia §5.4) ----
+document_status: [draft, active, deprecated, archived]
+scenario_status: [current, proposed, pilot, rejected, retired]
+
+# ---- vocabulário de relações (Guia §6.4) ----
+# Declaradas no corpo: - `tipo` → [[id-destino|Título]]
+relation_types:
+  advances:     { label_pt: avança para,     from: [value-stage],            to: [value-stage, objective],  description: Produz avanço no fluxo de valor. }
+  requires:     { label_pt: requer,          from: [],                       to: [],                        description: Não funciona adequadamente sem. }
+  enables:      { label_pt: habilita,        from: [capability],             to: [value-stage, capability], description: Torna possível. }
+  constrains:   { label_pt: restringe,       from: [invariant],              to: [],                        description: Impõe uma condição. }
+  triggers:     { label_pt: dispara,         from: [event],                  to: [realization, event],      description: Dispara. }
+  creates:      { label_pt: cria,            from: [event],                  to: [obligation],              description: Faz surgir. }
+  realizes:     { label_pt: realiza,         from: [realization],            to: [spine],                   description: Materializa uma necessidade essencial. }
+  supports:     { label_pt: apoia,           from: [system],                 to: [realization, spine],      description: Apoia tecnicamente. }
+  uses:         { label_pt: usa,             from: [realization, system],    to: [data],                    description: Consome. }
+  records:      { label_pt: registra,        from: [data],                   to: [event, spine],            description: Registra. }
+  measures:     { label_pt: mede,            from: [data],                   to: [objective, value-stage, capability], description: Mede. }
+  evidences:    { label_pt: evidencia,       from: [evidence],               to: [],                        description: Sustenta uma afirmação. }
+  contradicts:  { label_pt: contradiz,       from: [evidence],               to: [],                        description: Apresenta evidência contrária. }
+  affects:      { label_pt: afeta,           from: [problem],                to: [],                        description: Afeta negativamente ou introduz incerteza. }
+  mitigates:    { label_pt: mitiga,          from: [realization, system],    to: [problem],                 description: Reduz. }
+  motivates:    { label_pt: motiva,          from: [problem],                to: [realization, system, scenario], description: Justifica uma mudança. }
+  replaces:     { label_pt: substitui,       from: [realization, system],    to: [realization, system],     description: Substitui em determinado cenário. }
+  derived-from: { label_pt: derivado de,     from: [],                       to: [evidence],                description: Foi derivado de. }
+  related-to:   { label_pt: relacionado a,   from: [],                       to: [],                        description: Relação provisória — sempre gera AVISO (Guia §6.4). }
+
+# Semântica de from/to: listas vazias = qualquer origem/destino permitido.
+# Para spine, from/to aceitam também o spine_kind específico.
+# Combinação fora do típico gera AVISO; combinação proibida explícita, ERRO (Guia §14).

@@ -1,0 +1,923 @@
+# Gerado por compiler/graph_to_yaml.py — NÃO EDITAR.
+atlas:
+  aviso: Projeção derivada para leitura por IA — nunca editar; propor mudanças nos Markdown de autoria.
+  schema_version: '0.2'
+  gerado_em: '2026-07-24T20:24:21.384792Z'
+  commit: null
+cenarios:
+- id: scenario.loja-inteligente
+  nome: Loja inteligente
+  status: proposed
+  baseline: scenario.loja-unica
+- id: scenario.loja-unica
+  nome: As-Is · Loja única
+  status: current
+  baseline: null
+areas:
+- id: area.financeiro
+  nome: Financeiro
+- id: area.operacoes
+  nome: Operações
+- id: area.pessoas
+  nome: Pessoas
+- id: area.suprimentos
+  nome: Suprimentos
+- id: area.transformacao-digital
+  nome: Transformação Digital
+views:
+- id: view.cafeteria-visao-geral
+  nome: Cafeteria — visão geral
+  niveis:
+  - nivel: -1
+    cenario: scenario.loja-unica
+  - nivel: 0
+    cenario: espinha-dorsal (nivel 0)
+  - nivel: 1
+    cenario: scenario.loja-inteligente
+espinha:
+  capability.conhecer-o-cliente:
+    nome: Conhecer o cliente
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de saber quem compra, o que prefere e com que frequência volta.
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - enables → value-stage.fidelizar-cliente (Fidelizar cliente)
+    recebe:
+    - Programa de fidelidade (realization.programa-de-fidelidade) —realizes→ este
+    arquivo: spine/capabilities/capability.conhecer-o-cliente.md
+  capability.garantir-consistencia-da-bebida:
+    nome: Garantir consistência da bebida
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa
+      preparando.
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - enables → value-stage.disponibilizar-produto (Disponibilizar produto)
+    recebe:
+    - Insumo vencido não é utilizado (invariant.insumo-vencido-nao-utilizado) —constrains→ este
+    - Padrão de preparo no balcão (realization.padrao-de-preparo-no-balcao) —realizes→ este
+    arquivo: spine/capabilities/capability.garantir-consistencia-da-bebida.md
+  capability.garantir-insumos:
+    nome: Garantir insumos
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação
+      precisa deles.
+    cenarios: todos
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - enables → value-stage.abastecer-operacao (Abastecer operação)
+    recebe:
+    - Compra semanal de insumos (realization.compra-semanal-de-insumos) —realizes→ este
+    - Reposição automática de insumos (realization.reposicao-automatica-de-insumos) —realizes→ este
+    - Demanda prevista (data.demanda-prevista) —measures→ este
+    - Ruptura de estoque (problem.ruptura-de-estoque) —affects→ este
+    arquivo: spine/capabilities/capability.garantir-insumos.md
+  capability.garantir-transferencia-correta:
+    nome: Garantir transferência correta
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que
+      seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - enables → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
+    recebe:
+    - Entrega por chamada no balcão (realization.entrega-por-chamada-no-balcao) —realizes→ este
+    arquivo: spine/capabilities/capability.garantir-transferencia-correta.md
+  capability.gerenciar-equipe:
+    nome: Gerenciar equipe
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.
+    cenarios: todos
+    areas:
+    - area.pessoas (Pessoas)
+    relacoes:
+    - enables → value-stage.preparar-loja (Preparar loja)
+    recebe:
+    - Escala manual da equipe (realization.escala-manual-da-equipe) —realizes→ este
+    - Dependência de uma pessoa que sabe tudo (problem.dependencia-de-uma-pessoa-que-sabe-tudo) —affects→
+      este
+    arquivo: spine/capabilities/capability.gerenciar-equipe.md
+  capability.gerenciar-pedidos:
+    nome: Gerenciar pedidos
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega
+      ou resolução.
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - enables → value-stage.coletar-pedido (Coletar pedido)
+    recebe:
+    - Pedido no balcão (realization.pedido-no-balcao) —realizes→ este
+    - Pedido pelo app (realization.pedido-pelo-app) —realizes→ este
+    arquivo: spine/capabilities/capability.gerenciar-pedidos.md
+  capability.honrar-compromissos-financeiros:
+    nome: Honrar compromissos financeiros
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais
+      contas devidas — no valor e no prazo acordados.
+    cenarios: todos
+    areas:
+    - area.financeiro (Financeiro)
+    recebe:
+    - Caixa sempre conciliado (invariant.caixa-sempre-conciliado) —constrains→ este
+    - Pagar fornecedor (obligation.pagar-fornecedor) —requires→ este
+    - Pagamento ao fornecedor (realization.pagamento-ao-fornecedor) —realizes→ este
+    arquivo: spine/capabilities/capability.honrar-compromissos-financeiros.md
+  capability.processar-pagamentos:
+    nome: Processar pagamentos
+    tipo: capability
+    status: active
+    confianca: hypothesis
+    definicao: Capacidade de cobrar do cliente o valor correto no ato da venda e reconhecer esse recebimento
+      no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada
+      de honrar compromissos financeiros.
+    cenarios: todos
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - enables → value-stage.receber-pagamento (Receber pagamento)
+    recebe:
+    - Caixa sempre conciliado (invariant.caixa-sempre-conciliado) —constrains→ este
+    - Pagamento na maquininha (realization.pagamento-na-maquininha) —realizes→ este
+    arquivo: spine/capabilities/capability.processar-pagamentos.md
+  event.entrega-de-insumos-aceita:
+    nome: Entrega de insumos aceita
+    tipo: event
+    status: active
+    confianca: hypothesis
+    definicao: 'Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.'
+    cenarios: todos
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - creates → obligation.pagar-fornecedor (Pagar fornecedor)
+    recebe:
+    - Abastecer operação (value-stage.abastecer-operacao) —requires→ este
+    - Conferência de recebimento (realization.conferencia-de-recebimento) —realizes→ este
+    arquivo: spine/events/event.entrega-de-insumos-aceita.md
+  invariant.caixa-sempre-conciliado:
+    nome: Caixa sempre conciliado
+    tipo: invariant
+    status: active
+    confianca: hypothesis
+    definicao: 'O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa
+      batem com o que foi registrado.'
+    cenarios: todos
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - constrains → capability.processar-pagamentos (Processar pagamentos)
+    - constrains → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
+    recebe:
+    - Conferência de caixa no fechamento (realization.conferencia-de-caixa-no-fechamento) —realizes→ este
+    - Caixa que não fecha (problem.caixa-que-nao-fecha) —affects→ este
+    arquivo: spine/invariants/invariant.caixa-sempre-conciliado.md
+  invariant.insumo-vencido-nao-utilizado:
+    nome: Insumo vencido não é utilizado
+    tipo: invariant
+    status: active
+    confianca: hypothesis
+    definicao: 'O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de
+      uma bebida.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - constrains → capability.garantir-consistencia-da-bebida (Garantir consistência da bebida)
+    recebe:
+    - Controle de validade na prateleira (realization.controle-de-validade-na-prateleira) —realizes→ este
+    - Perda por validade (problem.perda-por-validade) —affects→ este
+    arquivo: spine/invariants/invariant.insumo-vencido-nao-utilizado.md
+  objective.servir-cafe-rentavel:
+    nome: Servir café com qualidade e margem
+    tipo: objective
+    status: active
+    confianca: hypothesis
+    definicao: 'Resultado desejado: servir bebidas dentro do padrão da casa, com uma margem que sustente
+      o negócio no longo prazo.'
+    cenarios: todos
+    recebe:
+    - Fidelizar cliente (value-stage.fidelizar-cliente) —advances→ este
+    arquivo: spine/objectives/objective.servir-cafe-rentavel.md
+  obligation.pagar-fornecedor:
+    nome: Pagar fornecedor
+    tipo: obligation
+    status: active
+    confianca: hypothesis
+    definicao: 'O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega
+      de insumos.'
+    cenarios: todos
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - requires → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
+    recebe:
+    - Entrega de insumos aceita (event.entrega-de-insumos-aceita) —creates→ este
+    arquivo: spine/obligations/obligation.pagar-fornecedor.md
+  value-stage.abastecer-operacao:
+    nome: Abastecer operação
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias
+      para operar o dia.'
+    cenarios: todos
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - advances → value-stage.preparar-loja (Preparar loja)
+    - requires → event.entrega-de-insumos-aceita (Entrega de insumos aceita)
+    recebe:
+    - Garantir insumos (capability.garantir-insumos) —enables→ este
+    - Loja única com estoque local (realization.loja-unica-com-estoque-local) —realizes→ este
+    arquivo: spine/value-stages/value-stage.abastecer-operacao.md
+  value-stage.coletar-pedido:
+    nome: Coletar pedido
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: a intenção de compra do cliente é capturada de forma acionável,
+      qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - advances → value-stage.disponibilizar-produto (Disponibilizar produto)
+    recebe:
+    - Gerenciar pedidos (capability.gerenciar-pedidos) —enables→ este
+    - Preparar loja (value-stage.preparar-loja) —advances→ este
+    - Registro manual de pedidos (data.registro-manual-de-pedidos) —records→ este
+    - Fila no horário de pico (problem.fila-no-horario-de-pico) —affects→ este
+    arquivo: spine/value-stages/value-stage.coletar-pedido.md
+  value-stage.disponibilizar-produto:
+    nome: Disponibilizar produto
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente
+      — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado
+      de terceiros para revenda.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - advances → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
+    recebe:
+    - Garantir consistência da bebida (capability.garantir-consistencia-da-bebida) —enables→ este
+    - Coletar pedido (value-stage.coletar-pedido) —advances→ este
+    arquivo: spine/value-stages/value-stage.disponibilizar-produto.md
+  value-stage.fidelizar-cliente:
+    nome: Fidelizar cliente
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - advances → objective.servir-cafe-rentavel (Servir café com qualidade e margem)
+    recebe:
+    - Conhecer o cliente (capability.conhecer-o-cliente) —enables→ este
+    - Receber pagamento (value-stage.receber-pagamento) —advances→ este
+    - Programa de fidelidade (realization.programa-de-fidelidade) —realizes→ este
+    arquivo: spine/value-stages/value-stage.fidelizar-cliente.md
+  value-stage.preparar-loja:
+    nome: Preparar loja
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada
+      antes de receber o primeiro cliente.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - advances → value-stage.coletar-pedido (Coletar pedido)
+    recebe:
+    - Gerenciar equipe (capability.gerenciar-equipe) —enables→ este
+    - Abastecer operação (value-stage.abastecer-operacao) —advances→ este
+    - Abertura e fechamento da loja (realization.abertura-e-fechamento-da-loja) —realizes→ este
+    - Limpeza de fim de turno (realization.limpeza-de-fim-de-turno) —realizes→ este
+    arquivo: spine/value-stages/value-stage.preparar-loja.md
+  value-stage.receber-pagamento:
+    nome: Receber pagamento
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: o pagamento é recebido e reconhecido pela operação.'
+    cenarios: todos
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - advances → value-stage.fidelizar-cliente (Fidelizar cliente)
+    recebe:
+    - Processar pagamentos (capability.processar-pagamentos) —enables→ este
+    - Transferir posse ao cliente (value-stage.transferir-posse-ao-cliente) —advances→ este
+    - Histórico de vendas (data.historico-de-vendas) —records→ este
+    - Planilha de vendas (data.planilha-de-vendas) —records→ este
+    arquivo: spine/value-stages/value-stage.receber-pagamento.md
+  value-stage.transferir-posse-ao-cliente:
+    nome: Transferir posse ao cliente
+    tipo: value-stage
+    status: active
+    confianca: hypothesis
+    definicao: 'Transformação necessária: a posse do produto passa para o cliente certo — por entrega,
+      retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.'
+    cenarios: todos
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - advances → value-stage.receber-pagamento (Receber pagamento)
+    recebe:
+    - Garantir transferência correta (capability.garantir-transferencia-correta) —enables→ este
+    - Disponibilizar produto (value-stage.disponibilizar-produto) —advances→ este
+    arquivo: spine/value-stages/value-stage.transferir-posse-ao-cliente.md
+realizacoes:
+  realization.abertura-e-fechamento-da-loja:
+    nome: Abertura e fechamento da loja
+    status: active
+    confianca: hypothesis
+    definicao: Checklist impresso, fixado atrás do balcão, com os passos de abertura (ligar equipamentos,
+      conferir estoque de leite e copos, montar o caixa) e de fechamento (limpar máquinas, guardar insumos
+      perecíveis, conferir caixa). Cada turno assina a linha correspondente.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → value-stage.preparar-loja (Preparar loja)
+    arquivo: realizations/realization.abertura-e-fechamento-da-loja.md
+  realization.compra-semanal-de-insumos:
+    nome: Compra semanal de insumos
+    status: active
+    confianca: hypothesis
+    definicao: Compra de insumos feita uma vez por semana, geralmente às segundas, por estimativa da gerente
+      — sem previsão formal de demanda. Parte dos itens é comprada no atacadista da região, parte é pedida
+      diretamente a fornecedores habituais.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - realizes → capability.garantir-insumos (Garantir insumos)
+    recebe:
+    - Reposição automática de insumos (realization.reposicao-automatica-de-insumos) —replaces→ este
+    - Grupo de WhatsApp com fornecedor (system.grupo-whatsapp-fornecedor) —supports→ este
+    - Ruptura de estoque (problem.ruptura-de-estoque) —affects→ este
+    arquivo: realizations/realization.compra-semanal-de-insumos.md
+  realization.conferencia-de-caixa-no-fechamento:
+    nome: Conferência de caixa no fechamento
+    status: active
+    confianca: hypothesis
+    definicao: Ao final do dia, a pessoa responsável pelo fechamento soma manualmente o extrato da maquininha
+      e compara com o total anotado na planilha de vendas, lançando a diferença — quando existe — em uma
+      célula de "ajuste".
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.financeiro (Financeiro)
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → invariant.caixa-sempre-conciliado (Caixa sempre conciliado)
+    - uses → data.planilha-de-vendas (Planilha de vendas)
+    arquivo: realizations/realization.conferencia-de-caixa-no-fechamento.md
+  realization.conferencia-de-recebimento:
+    nome: Conferência de recebimento
+    status: active
+    confianca: hypothesis
+    definicao: Quando a entrega chega, quem está no balcão confere as caixas contra o que foi pedido no
+      grupo de WhatsApp, olha validade e estado dos itens e guarda a nota que veio junto. Divergência
+      é resolvida na hora, por mensagem ao fornecedor; não há registro formal do aceite.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - realizes → event.entrega-de-insumos-aceita (Entrega de insumos aceita)
+    arquivo: realizations/realization.conferencia-de-recebimento.md
+  realization.controle-de-validade-na-prateleira:
+    nome: Controle de validade na prateleira
+    status: active
+    confianca: hypothesis
+    definicao: A equipe organiza os insumos na prateleira por ordem de validade (o mais próximo do vencimento
+      na frente) e confere visualmente antes de cada turno. Não há etiqueta, planilha ou sistema de apoio
+      — só a rotina de quem está de plantão.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → invariant.insumo-vencido-nao-utilizado (Insumo vencido não é utilizado)
+    arquivo: realizations/realization.controle-de-validade-na-prateleira.md
+  realization.entrega-por-chamada-no-balcao:
+    nome: Entrega por chamada no balcão
+    status: active
+    confianca: hypothesis
+    definicao: Quando a bebida fica pronta, o barista chama em voz alta o nome anotado na comanda e entrega
+      no balcão de retirada. Um só ponto de entrega, sem senha impressa nem tela de chamada.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → capability.garantir-transferencia-correta (Garantir transferência correta)
+    arquivo: realizations/realization.entrega-por-chamada-no-balcao.md
+  realization.escala-manual-da-equipe:
+    nome: Escala manual da equipe
+    status: draft
+    confianca: hypothesis
+    definicao: A escala semanal é montada à mão pela gerente, em planilha, com base na disponibilidade
+      informada pela equipe.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.pessoas (Pessoas)
+    relacoes:
+    - realizes → capability.gerenciar-equipe (Gerenciar equipe)
+    recebe:
+    - Dependência de uma pessoa que sabe tudo (problem.dependencia-de-uma-pessoa-que-sabe-tudo) —affects→
+      este
+    arquivo: realizations/realization.escala-manual-da-equipe.md
+  realization.limpeza-de-fim-de-turno:
+    nome: Limpeza de fim de turno
+    status: draft
+    confianca: hypothesis
+    definicao: Checklist de limpeza executado pela equipe no fechamento de cada turno, antes de liberar
+      a loja.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → value-stage.preparar-loja (Preparar loja)
+    arquivo: realizations/realization.limpeza-de-fim-de-turno.md
+  realization.loja-unica-com-estoque-local:
+    nome: Loja única com estoque local
+    status: active
+    confianca: hypothesis
+    definicao: 'Modelo atual de operação: uma única loja, com estoque físico mantido no próprio local,
+      abastecida por compra direta a fornecedores e atacadistas.'
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → value-stage.abastecer-operacao (Abastecer operação)
+    arquivo: realizations/realization.loja-unica-com-estoque-local.md
+  realization.padrao-de-preparo-no-balcao:
+    nome: Padrão de preparo no balcão
+    status: active
+    confianca: hypothesis
+    definicao: Ficha de preparo afixada atrás da máquina, com a dose de café, a quantidade de leite e
+      o tempo de extração de cada bebida do cardápio. Todo barista novo é treinado por acompanhamento
+      nos primeiros turnos até reproduzir o padrão sem consultar a ficha.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → capability.garantir-consistencia-da-bebida (Garantir consistência da bebida)
+    arquivo: realizations/realization.padrao-de-preparo-no-balcao.md
+  realization.pagamento-ao-fornecedor:
+    nome: Pagamento ao fornecedor
+    status: active
+    confianca: hypothesis
+    definicao: 'A gerente paga cada fornecedor pelo aplicativo do banco, por boleto ou PIX, na data combinada
+      na negociação — em geral a partir do valor anotado na nota que veio com a entrega. Não há contas
+      a pagar formal: os vencimentos ficam na memória e na conversa do grupo de WhatsApp.'
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.financeiro (Financeiro)
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - realizes → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
+    arquivo: realizations/realization.pagamento-ao-fornecedor.md
+  realization.pagamento-na-maquininha:
+    nome: Pagamento na maquininha
+    status: active
+    confianca: hypothesis
+    definicao: A cobrança é feita na maquininha de cartão ao final do pedido, sem integração com o restante
+      da operação.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.financeiro (Financeiro)
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → capability.processar-pagamentos (Processar pagamentos)
+    recebe:
+    - POS do balcão (system.pos-balcao) —supports→ este
+    arquivo: realizations/realization.pagamento-na-maquininha.md
+  realization.pedido-no-balcao:
+    nome: Pedido no balcão
+    status: active
+    confianca: certified
+    definicao: O cliente informa o pedido diretamente ao barista no balcão.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - realizes → capability.gerenciar-pedidos (Gerenciar pedidos)
+    - uses → data.registro-manual-de-pedidos (Registro manual de pedidos)
+    recebe:
+    - Pedido pelo app (realization.pedido-pelo-app) —replaces→ este
+    - POS do balcão (system.pos-balcao) —supports→ este
+    - Entrevista com gerente da loja (jul/2026) (evidence.entrevista-gerente-loja-2026-07) —evidences→
+      este
+    arquivo: realizations/realization.pedido-no-balcao.md
+  realization.pedido-pelo-app:
+    nome: Pedido pelo app
+    status: draft
+    confianca: hypothesis
+    definicao: O cliente registra e acompanha o pedido pelo aplicativo, sem precisar falar com o barista
+      no balcão.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - realizes → capability.gerenciar-pedidos (Gerenciar pedidos)
+    - uses → data.pedidos-do-aplicativo (Pedidos do aplicativo)
+    - replaces → realization.pedido-no-balcao (Pedido no balcão)
+    recebe:
+    - Aplicativo da cafeteria (system.aplicativo-cafeteria) —supports→ este
+    arquivo: realizations/realization.pedido-pelo-app.md
+  realization.programa-de-fidelidade:
+    nome: Programa de fidelidade
+    status: draft
+    confianca: hypothesis
+    definicao: Programa de pontos e recompensas calculado a partir do histórico de compras do cliente
+      no aplicativo.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.operacoes (Operações)
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - realizes → capability.conhecer-o-cliente (Conhecer o cliente)
+    - realizes → value-stage.fidelizar-cliente (Fidelizar cliente)
+    - uses → data.pedidos-do-aplicativo (Pedidos do aplicativo)
+    recebe:
+    - Aplicativo da cafeteria (system.aplicativo-cafeteria) —supports→ este
+    arquivo: realizations/realization.programa-de-fidelidade.md
+  realization.reposicao-automatica-de-insumos:
+    nome: Reposição automática de insumos
+    status: draft
+    confianca: hypothesis
+    definicao: Pedido de compra sugerido automaticamente a partir de uma previsão de demanda por item
+      e dia da semana, substituindo a estimativa manual.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.suprimentos (Suprimentos)
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - realizes → capability.garantir-insumos (Garantir insumos)
+    - replaces → realization.compra-semanal-de-insumos (Compra semanal de insumos)
+    - uses → data.demanda-prevista (Demanda prevista)
+    - mitigates → problem.ruptura-de-estoque (Ruptura de estoque)
+    recebe:
+    - Previsão de demanda (system.previsao-de-demanda) —supports→ este
+    arquivo: realizations/realization.reposicao-automatica-de-insumos.md
+sistemas:
+  system.aplicativo-cafeteria:
+    nome: Aplicativo da cafeteria
+    status: draft
+    confianca: hypothesis
+    definicao: Aplicativo proposto para pedidos, pagamento e fidelidade do cliente, ainda não construído.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    - area.operacoes (Operações)
+    relacoes:
+    - supports → realization.pedido-pelo-app (Pedido pelo app)
+    - supports → realization.programa-de-fidelidade (Programa de fidelidade)
+    arquivo: systems/system.aplicativo-cafeteria.md
+  system.grupo-whatsapp-fornecedor:
+    nome: Grupo de WhatsApp com fornecedor
+    status: active
+    confianca: hypothesis
+    definicao: Grupo de WhatsApp entre a gerente e o representante do principal fornecedor de insumos,
+      usado para fazer pedidos, confirmar entregas e avisar sobre atrasos. Não há pedido formal nem registro
+      fora das mensagens trocadas.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - supports → realization.compra-semanal-de-insumos (Compra semanal de insumos)
+    arquivo: systems/system.grupo-whatsapp-fornecedor.md
+  system.pos-balcao:
+    nome: POS do balcão
+    status: active
+    confianca: hypothesis
+    definicao: 'Ponto de venda instalado no balcão — a "maquininha" que a equipe usa para cobrar o cliente.
+      Não tem integração com estoque, planilha de vendas ou qualquer outro sistema: cada cobrança fica
+      isolada no extrato do próprio equipamento.'
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - supports → realization.pedido-no-balcao (Pedido no balcão)
+    - supports → realization.pagamento-na-maquininha (Pagamento na maquininha)
+    arquivo: systems/system.pos-balcao.md
+  system.previsao-de-demanda:
+    nome: Previsão de demanda
+    status: draft
+    confianca: hypothesis
+    definicao: Modelo simples de previsão de consumo por item e dia da semana, proposto para o cenário
+      To-Be "Suprimento inteligente".
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - supports → realization.reposicao-automatica-de-insumos (Reposição automática de insumos)
+    - uses → data.historico-de-vendas (Histórico de vendas)
+    arquivo: systems/system.previsao-de-demanda.md
+dados:
+  data.demanda-prevista:
+    nome: Demanda prevista
+    status: draft
+    confianca: hypothesis
+    definicao: Previsão de consumo por insumo e dia, calculada a partir do histórico de vendas.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - measures → capability.garantir-insumos (Garantir insumos)
+    recebe:
+    - Reposição automática de insumos (realization.reposicao-automatica-de-insumos) —uses→ este
+    arquivo: data/data.demanda-prevista.md
+  data.historico-de-vendas:
+    nome: Histórico de vendas
+    status: active
+    confianca: hypothesis
+    definicao: Vendas por item, dia e hora, registradas automaticamente pelo ponto de venda (POS do balcão)
+      no momento da cobrança.
+    cenarios: todos
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    relacoes:
+    - records → value-stage.receber-pagamento (Receber pagamento)
+    recebe:
+    - Previsão de demanda (system.previsao-de-demanda) —uses→ este
+    arquivo: data/data.historico-de-vendas.md
+  data.pedidos-do-aplicativo:
+    nome: Pedidos do aplicativo
+    status: draft
+    confianca: hypothesis
+    definicao: Pedidos, pagamentos e preferências do cliente capturados pelo aplicativo proposto, ainda
+      não existente.
+    cenarios:
+    - scenario.loja-inteligente (Loja inteligente)
+    areas:
+    - area.transformacao-digital (Transformação Digital)
+    recebe:
+    - Pedido pelo app (realization.pedido-pelo-app) —uses→ este
+    - Programa de fidelidade (realization.programa-de-fidelidade) —uses→ este
+    arquivo: data/data.pedidos-do-aplicativo.md
+  data.planilha-de-vendas:
+    nome: Planilha de vendas
+    status: active
+    confianca: hypothesis
+    definicao: Planilha mantida manualmente pela gerente, onde cada venda do dia é lançada à mão a partir
+      do que ela observa no balcão — uma segunda contagem, paralela ao extrato da maquininha, usada para
+      conferência.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - records → value-stage.receber-pagamento (Receber pagamento)
+    recebe:
+    - Conferência de caixa no fechamento (realization.conferencia-de-caixa-no-fechamento) —uses→ este
+    arquivo: data/data.planilha-de-vendas.md
+  data.registro-manual-de-pedidos:
+    nome: Registro manual de pedidos
+    status: active
+    confianca: hypothesis
+    definicao: Comandas de papel e anotações feitas no balcão pelo barista, um pedido por vez. É o único
+      registro do que foi pedido antes da produção.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - records → value-stage.coletar-pedido (Coletar pedido)
+    recebe:
+    - Pedido no balcão (realization.pedido-no-balcao) —uses→ este
+    arquivo: data/data.registro-manual-de-pedidos.md
+evidencias:
+  evidence.entrevista-barista-2026-06:
+    nome: Entrevista com barista (jun/2026)
+    status: active
+    confianca: certified
+    definicao: 'Entrevista conduzida em 15/06/2026 com um barista sobre o horário de pico da manhã. Fato
+      observado relatado pelo próprio barista: "das 7h30 às 9h eu não consigo tirar pedido e fazer bebida
+      ao mesmo tempo, a fila só cresce".'
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - evidences → problem.fila-no-horario-de-pico (Fila no horário de pico)
+    arquivo: evidence/evidence.entrevista-barista-2026-06.md
+  evidence.entrevista-gerente-loja-2026-07:
+    nome: Entrevista com gerente da loja (jul/2026)
+    status: active
+    confianca: certified
+    definicao: Entrevista conduzida em 10/07/2026 com a gerente da loja única, sobre como o atendimento
+      no balcão funciona hoje na prática. Fato observado relatado pela gerente, não opinião de terceiros.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - evidences → realization.pedido-no-balcao (Pedido no balcão)
+    arquivo: evidence/evidence.entrevista-gerente-loja-2026-07.md
+  evidence.foto-estoque-2026-05:
+    nome: Fotos de estoque (mai/2026)
+    status: active
+    confianca: certified
+    definicao: Registro fotográfico feito em 20/05/2026 da prateleira de insumos, mostrando quatro caixas
+      de leite e dois pacotes de pão de forma vencidos há mais de dois dias, ainda armazenados junto aos
+      itens válidos. Fato observado, não relato de terceiros.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - evidences → problem.perda-por-validade (Perda por validade)
+    arquivo: evidence/evidence.foto-estoque-2026-05.md
+  evidence.historico-de-faltas:
+    nome: Histórico de faltas de insumo
+    status: active
+    confianca: certified
+    definicao: Levantamento das rupturas de insumo registradas informalmente pela equipe nos últimos três
+      meses (abril–junho de 2026), a partir dos avisos de "acabou" passados no grupo de WhatsApp da loja.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - evidences → problem.ruptura-de-estoque (Ruptura de estoque)
+    arquivo: evidence/evidence.historico-de-faltas.md
+  evidence.planilha-fechamento-caixa-2026-06:
+    nome: Planilha de fechamento de caixa (jun/2026)
+    status: active
+    confianca: certified
+    definicao: Extrato dos fechamentos de caixa de junho de 2026, mostrando divergência entre o total
+      da maquininha e o total da planilha de vendas em 6 dos 26 dias operados no mês, sempre lançada na
+      coluna "ajuste" sem justificativa registrada. Fato observado a partir do próprio arquivo.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - evidences → problem.caixa-que-nao-fecha (Caixa que não fecha)
+    arquivo: evidence/evidence.planilha-fechamento-caixa-2026-06.md
+  evidence.registro-turnos-sem-substituto-2026-07:
+    nome: Registro de turnos sem substituto (jul/2026)
+    status: active
+    confianca: certified
+    definicao: Levantamento da escala de junho e julho de 2026 mostrando que, nos três dias em que a gerente
+      faltou por motivo de saúde, não havia substituto capaz de fechar o caixa nem renegociar entrega
+      com o fornecedor — tarefas ficaram pendentes até o retorno dela. Fato observado a partir da própria
+      escala.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.pessoas (Pessoas)
+    relacoes:
+    - evidences → problem.dependencia-de-uma-pessoa-que-sabe-tudo (Dependência de uma pessoa que sabe
+      tudo)
+    arquivo: evidence/evidence.registro-turnos-sem-substituto-2026-07.md
+problemas:
+  problem.caixa-que-nao-fecha:
+    nome: Caixa que não fecha
+    status: active
+    confianca: certified
+    definicao: Em parte dos fechamentos, o total da maquininha e o total da planilha de vendas não batem,
+      e a diferença é lançada como "ajuste" sem investigação da causa.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.financeiro (Financeiro)
+    relacoes:
+    - affects → invariant.caixa-sempre-conciliado (Caixa sempre conciliado)
+    - motivates → scenario.loja-inteligente (Loja inteligente)
+    recebe:
+    - Planilha de fechamento de caixa (jun/2026) (evidence.planilha-fechamento-caixa-2026-06) —evidences→
+      este
+    arquivo: problems/problem.caixa-que-nao-fecha.md
+  problem.dependencia-de-uma-pessoa-que-sabe-tudo:
+    nome: Dependência de uma pessoa que sabe tudo
+    status: active
+    confianca: certified
+    definicao: A gerente é a única pessoa que sabe montar a escala, fechar o caixa corretamente, negociar
+      com o fornecedor e destravar problemas do dia a dia. Quando ela falta, a operação improvisa.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.pessoas (Pessoas)
+    - area.operacoes (Operações)
+    relacoes:
+    - affects → capability.gerenciar-equipe (Gerenciar equipe)
+    - affects → realization.escala-manual-da-equipe (Escala manual da equipe)
+    recebe:
+    - Registro de turnos sem substituto (jul/2026) (evidence.registro-turnos-sem-substituto-2026-07) —evidences→
+      este
+    arquivo: problems/problem.dependencia-de-uma-pessoa-que-sabe-tudo.md
+  problem.fila-no-horario-de-pico:
+    nome: Fila no horário de pico
+    status: active
+    confianca: certified
+    definicao: Entre 7h30 e 9h, a fila para pedir no balcão chega a ultrapassar dez pessoas, porque cada
+      pedido depende do barista anotar, repetir e só então iniciar a produção.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    relacoes:
+    - affects → value-stage.coletar-pedido (Coletar pedido)
+    - motivates → scenario.loja-inteligente (Loja inteligente)
+    recebe:
+    - Entrevista com barista (jun/2026) (evidence.entrevista-barista-2026-06) —evidences→ este
+    arquivo: problems/problem.fila-no-horario-de-pico.md
+  problem.perda-por-validade:
+    nome: Perda por validade
+    status: active
+    confianca: certified
+    definicao: Parte dos insumos comprados na compra semanal vence na prateleira antes de ser usada, principalmente
+      leite e itens de padaria, gerando descarte recorrente.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - affects → invariant.insumo-vencido-nao-utilizado (Insumo vencido não é utilizado)
+    - motivates → scenario.loja-inteligente (Loja inteligente)
+    recebe:
+    - Fotos de estoque (mai/2026) (evidence.foto-estoque-2026-05) —evidences→ este
+    arquivo: problems/problem.perda-por-validade.md
+  problem.ruptura-de-estoque:
+    nome: Ruptura de estoque
+    status: active
+    confianca: certified
+    definicao: Indisponibilidade de insumo necessário para atender a demanda.
+    cenarios:
+    - scenario.loja-unica (As-Is · Loja única)
+    areas:
+    - area.operacoes (Operações)
+    - area.suprimentos (Suprimentos)
+    relacoes:
+    - affects → capability.garantir-insumos (Garantir insumos)
+    - affects → realization.compra-semanal-de-insumos (Compra semanal de insumos)
+    - motivates → scenario.loja-inteligente (Loja inteligente)
+    recebe:
+    - Reposição automática de insumos (realization.reposicao-automatica-de-insumos) —mitigates→ este
+    - Histórico de faltas de insumo (evidence.historico-de-faltas) —evidences→ este
+    arquivo: problems/problem.ruptura-de-estoque.md

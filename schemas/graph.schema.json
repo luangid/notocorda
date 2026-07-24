@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/luangid/notocorda/schemas/graph.schema.json",
+  "title": "Notocorda — graph.json (plano derivado)",
+  "description": "Contrato do artefato que o visualizador consome. Gerado pelo compilador (Guia §13) — nunca editado à mão. v0.2: caixas nas 6 famílias, relações extraídas dos wikilinks tipados, áreas como memberships, cenários e views projetados como coleções próprias.",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "nodes", "edges", "areas", "scenarios", "views"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.2" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit": { "type": ["string", "null"] },
+        "dirty": { "type": "boolean" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "name", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/docId" },
+          "type": { "type": "string", "enum": ["spine", "realization", "system", "data", "evidence", "problem"] },
+          "spine_kind": { "type": "string", "enum": ["objective", "value-stage", "capability", "invariant", "event", "obligation"] },
+          "name": { "type": "string", "description": "Título humano (H1 do corpo)." },
+          "status": { "type": "string", "enum": ["draft", "active", "deprecated", "archived"] },
+          "confidence": { "type": "string", "enum": ["hypothesis", "certified", "validated"] },
+          "definition": { "type": "string", "description": "Seção ## Definição do corpo." },
+          "areas": { "type": "array", "items": { "$ref": "#/$defs/docId" }, "description": "Membership derivado do frontmatter — nunca vira aresta visual." },
+          "scenarios": { "type": "array", "items": { "$ref": "#/$defs/docId" }, "description": "Vazio/ausente = válido em todos os cenários." },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "source": { "$ref": "#/$defs/source" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Relações extraídas dos wikilinks tipados do corpo. Visibilidade de cenário herda do documento de ORIGEM (Guia §6.6).",
+      "items": {
+        "type": "object",
+        "required": ["source", "type", "target"],
+        "additionalProperties": false,
+        "properties": {
+          "source": { "$ref": "#/$defs/docId" },
+          "type": { "type": "string" },
+          "target": { "$ref": "#/$defs/docId" }
+        }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/docId" },
+          "name": { "type": "string" },
+          "status": { "type": "string" },
+          "definition": { "type": "string" },
+          "source": { "$ref": "#/$defs/source" }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/docId" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["draft", "current", "proposed", "pilot", "rejected", "retired"] },
+          "baseline": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/docId" }] },
+          "definition": { "type": "string" },
+          "source": { "$ref": "#/$defs/source" }
+        }
+      }
+    },
+    "views": {
+      "type": "array",
+      "description": "Views projetadas (documentos type: view). Níveis do seletor pertencem à view, não ao cenário (Guia §8.3, §15).",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "scenario_levels"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/docId" },
+          "name": { "type": "string" },
+          "scenario_levels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["level", "scenario"],
+              "additionalProperties": false,
+              "properties": {
+                "level": { "type": "integer" },
+                "scenario": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/docId" }], "description": "null = nível da espinha dorsal (0)." }
+              }
+            }
+          },
+          "visible_types": { "type": "array", "items": { "type": "string" } },
+          "show_area_clouds": { "type": "boolean" },
+          "show_area_edges": { "type": "boolean" },
+          "layout": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["x", "y"],
+              "additionalProperties": false,
+              "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+            }
+          },
+          "source": { "$ref": "#/$defs/source" }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "warnings": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+        "gaps": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+      }
+    }
+  },
+  "$defs": {
+    "docId": { "type": "string", "pattern": "^[a-z][a-z0-9-]*\\.[a-z0-9][a-z0-9.-]*$" },
+    "source": {
+      "type": "object",
+      "required": ["path"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "repository": { "type": ["string", "null"] },
+        "commit": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "node": { "type": ["string", "null"] },
+        "scenario": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
