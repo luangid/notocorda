@@ -517,7 +517,16 @@
     };
 
     const colunas = {};
-    fora.forEach(n => { const a = areaDe(n); (colunas[a] = colunas[a] || []).push(n); });
+    fora.forEach(n => {
+      const a = areaDe(n);
+      // `areaMain` é a área da COLUNA onde o nó é desenhado — a nuvem se agrupa
+      // por ela, não por todas as áreas do nó. Um nó em duas áreas aparece uma
+      // vez, na coluna da área mais específica; a outra área não estica a nuvem
+      // até aqui (era o que fazia os cascos se cobrirem). As demais áreas do nó
+      // seguem visíveis nos chips/inspetor.
+      n.areaMain = a === '—' ? null : a;
+      (colunas[a] = colunas[a] || []).push(n);
+    });
 
     // Largura das colunas: o bloco inteiro deve caber na largura do EIXO. Se
     // as colunas crescem livres, o mapa fica mais largo que a espinha, o
@@ -529,7 +538,9 @@
       ? Math.max(...xs.map(n => n.homeX + n.wWorld / 2)) - Math.min(...xs.map(n => n.homeX - n.wWorld / 2))
       : 1600;
     const nomes = Object.keys(colunas);
-    const GAP_COL = GAP_H * 2.6;
+    // Gap folgado entre colunas dá respiro entre as nuvens (agora cada nó está
+    // só na sua coluna, então já não há invasão — isto é só estética).
+    const GAP_COL = GAP_H * 3.2;
     const peso = {};
     nomes.forEach(a => { peso[a] = Math.sqrt(colunas[a].reduce((s, n) => s + n.wWorld + GAP, 0)); });
     const somaPeso = nomes.reduce((s, a) => s + peso[a], 0);
@@ -537,7 +548,11 @@
     const medida = {};
     nomes.forEach(a => {
       const maior = Math.max(...colunas[a].map(n => n.wWorld));
-      medida[a] = { larg: Math.max(maior + GAP, util * peso[a] / somaPeso) };
+      // Teto na largura: área grande empilha em mais LINHAS (coluna alta e
+      // estreita) em vez de espalhar na horizontal. Coluna estreita = casco
+      // estreito = áreas não se cobrem (a nuvem de cada uma fica no seu lugar).
+      const teto = maior * 2 + GAP * 2;
+      medida[a] = { larg: Math.min(teto, Math.max(maior + GAP, util * peso[a] / somaPeso)) };
     });
 
     // empacota cada faixa de cada coluna em linhas, respeitando a largura

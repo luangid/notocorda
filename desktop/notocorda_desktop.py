@@ -19,12 +19,13 @@ Uso:
     .venv/bin/python desktop/notocorda_desktop.py                  # exemplo da cafeteria
     .venv/bin/python desktop/notocorda_desktop.py ../outro-vault   # a pasta do mapa
     .venv/bin/python desktop/notocorda_desktop.py --listar         # que mapas existem
+    .venv/bin/python desktop/notocorda_desktop.py --esquecer NOME  # tira um da estante
     .venv/bin/python desktop/notocorda_desktop.py --teste          # abre e fecha (checagem)
 """
 from __future__ import annotations
 
 import argparse
-import functools
+import datetime
 import http.server
 import json
 import os
@@ -41,6 +42,13 @@ GRAFO_PADRAO = "examples/cafeteria"
 # Preenchidas em `abrir_mapa()` — dependem de qual grafo foi pedido:
 BASE = RAIZ        # pasta servida por HTTP (ancestral comum de RAIZ e do mapa)
 VAULT = RAIZ       # raiz do mapa aberto; é a ela que `source.path` se refere
+
+# A ESTANTE: os mapas que esta pessoa já abriu. Mora fora do repositório de
+# propósito — a ferramenta é pública, os mapas são de quem os escreve, e a
+# lista de onde eles moram no disco é dado privado que nunca deve virar commit.
+ESTANTE = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") \
+    / "notocorda" / "estante.json"
+ESTANTE_MAX = 24
 
 
 def raiz_do_vault(grafo: Path) -> Path:
@@ -60,6 +68,64 @@ def abrir_mapa(grafo: Path) -> None:
     VAULT = raiz_do_vault(grafo)
     comuns = Path(*os.path.commonprefix([RAIZ.parts, grafo.parts]))
     BASE = comuns if comuns.is_dir() else RAIZ
+
+
+# --- estante: os mapas que já foram abertos -------------------------------
+# Achar o mapa de novo não deveria ser trabalho. A varredura da pasta servida
+# só enxerga o que está debaixo dela — e o mapa de verdade quase nunca mora
+# dentro da ferramenta. A estante guarda o caminho absoluto de cada mapa
+# aberto, para que ele reapareça na lista mesmo depois de fechar o app.
+
+
+def ler_estante() -> list[dict]:
+    """Os mapas guardados, do mais recente para o mais antigo.
+
+    Nunca explode: um arquivo corrompido vira estante vazia — perder a lista
+    de atalhos é irritante, não conseguir abrir o app é pior.
+    """
+    try:
+        dados = json.loads(ESTANTE.read_text(encoding="utf-8"))
+        itens = dados.get("mapas", []) if isinstance(dados, dict) else dados
+        return [i for i in itens if isinstance(i, dict) and i.get("grafo")]
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return []
+
+
+def gravar_estante(itens: list[dict]) -> None:
+    try:
+        ESTANTE.parent.mkdir(parents=True, exist_ok=True)
+        ESTANTE.write_text(
+            json.dumps({"versao": 1, "mapas": itens[:ESTANTE_MAX]},
+                       ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8")
+    except OSError as exc:  # noqa: BLE001 - a estante é conveniência, não requisito
+        print(f"aviso: não consegui gravar a estante ({exc})", file=sys.stderr)
+
+
+def guardar_na_estante(grafo: Path) -> None:
+    """Registra (ou atualiza) o mapa recém-aberto no topo da estante."""
+    grafo = grafo.resolve()
+    vault = raiz_do_vault(grafo)
+    item = {
+        "grafo": str(grafo),
+        "vault": str(vault),
+        "nome": vault.name,
+        "aberto_em": datetime.datetime.now().isoformat(timespec="seconds"),
+    }
+    item.update({k: v for k, v in resumo_do_grafo(grafo).items() if k != "erro"})
+    resto = [i for i in ler_estante() if i.get("grafo") != item["grafo"]]
+    gravar_estante([item] + resto)
+
+
+def esquecer_da_estante(alvo: str) -> bool:
+    """Tira um mapa da estante. Aceita o caminho do grafo, do vault ou o nome."""
+    itens = ler_estante()
+    sobrou = [i for i in itens
+              if alvo not in (i.get("grafo"), i.get("vault"), i.get("nome"))]
+    if len(sobrou) == len(itens):
+        return False
+    gravar_estante(sobrou)
+    return True
 
 
 sys.path.insert(0, str(RAIZ / "compiler"))
@@ -154,6 +220,18 @@ class ServidorSilencioso(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 class HandlerSilencioso(http.server.SimpleHTTPRequestHandler):
+    """Serve a partir do BASE **do momento da requisição**.
+
+    A pasta servida não é fixa: abrir um mapa de outro canto do disco muda o
+    ancestral comum, e reabrir o servidor numa porta nova invalidaria a janela
+    já aberta. Por isso o diretório é lido a cada requisição, não fixado na
+    criação do servidor.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("directory", None)
+        super().__init__(*args, directory=str(BASE), **kwargs)
+
     def log_message(self, *args):  # noqa: D102 - silêncio proposital
         pass
 
@@ -164,8 +242,7 @@ def subir_servidor() -> tuple[ServidorSilencioso, int]:
     Precisa ser HTTP e não file:// — o viewer busca o graph.json por fetch,
     que o navegador bloqueia em arquivos locais.
     """
-    handler = functools.partial(HandlerSilencioso, directory=str(BASE))
-    servidor = ServidorSilencioso(("127.0.0.1", 0), handler)
+    servidor = ServidorSilencioso(("127.0.0.1", 0), HandlerSilencioso)
     porta = servidor.socket.getsockname()[1]
     threading.Thread(target=servidor.serve_forever, daemon=True).start()
     return servidor, porta
@@ -177,35 +254,94 @@ def porta_viva(porta: int) -> bool:
         return s.connect_ex(("127.0.0.1", porta)) == 0
 
 
-def listar_grafos() -> list[dict]:
-    """Todo graph.json sob a pasta servida, com um resumo de cada um.
+def resumo_do_grafo(caminho: Path) -> dict:
+    """Quantos nós, relações e etapas — o suficiente para reconhecer o mapa."""
+    try:
+        with caminho.open(encoding="utf-8") as f:
+            g = json.load(f)
+        etapas = [n for n in g.get("nodes", []) if n.get("spine_kind") == "value-stage"]
+        return {
+            "nos": len(g.get("nodes", [])),
+            "relacoes": len(g.get("edges", [])),
+            "etapas": len(etapas),
+            "gerado_em": g.get("generated_at"),
+        }
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"erro": str(exc)}
 
-    O caminho devolvido é relativo à RAIZ do repositório (podendo começar por
-    `../`, quando o mapa mora fora dele): é o que a interface concatena ao
-    `../` do endereço do viewer.
+
+def _ordem_tempo(iso: str | None) -> float:
+    """ISO → número comparável; sem data vai para o fim da fila."""
+    try:
+        return datetime.datetime.fromisoformat(iso).timestamp() if iso else 0.0
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def listar_grafos() -> list[dict]:
+    """Os mapas oferecidos no "Abrir mapa": a estante primeiro, a varredura depois.
+
+    São duas origens de natureza diferente, e ambas importam:
+
+    * **estante** — mapas que esta pessoa já abriu, onde quer que morem no
+      disco. Sobrevivem a fechar o app e a trocar a pasta servida.
+    * **varredura** — todo `graph.json` sob a pasta servida agora. Acha mapas
+      vizinhos que nunca foram abertos.
+
+    Cada item traz `abs` (caminho absoluto, que o desktop reabre de qualquer
+    lugar) e `caminho` (relativo à RAIZ, só quando o HTTP alcança o arquivo —
+    é dele que o navegador precisa).
     """
-    achados = []
+    itens: dict[str, dict] = {}
+
+    def rel_servido(caminho: Path) -> str | None:
+        if not caminho.is_relative_to(BASE):
+            return None
+        return os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
+
+    for guardado in ler_estante():
+        caminho = Path(guardado["grafo"])
+        vault = Path(guardado.get("vault") or raiz_do_vault(caminho))
+        # o mapa continua existindo se o grafo está lá OU se o vault ainda é um
+        # vault — nesse caso o grafo é recompilado na hora de abrir
+        existe = caminho.exists() or eh_vault(vault)
+        item = {
+            "abs": str(caminho), "caminho": rel_servido(caminho),
+            "nome": guardado.get("nome") or vault.name, "vault": str(vault),
+            "estante": True, "aberto_em": guardado.get("aberto_em"),
+            "sumiu": not existe,
+        }
+        # o retrato guardado vale enquanto o arquivo não puder ser lido de novo
+        for chave in ("nos", "relacoes", "etapas", "gerado_em"):
+            if guardado.get(chave) is not None:
+                item[chave] = guardado[chave]
+        if caminho.exists():
+            item.update(resumo_do_grafo(caminho))
+        elif not existe:
+            item["erro"] = "não está mais neste caminho"
+        itens[str(caminho)] = item
+
     for caminho in sorted(BASE.glob("**/graph.json")):
         # `.obsidian/graph.json` é configuração do Obsidian, não é mapa
         if any(p in (".venv", ".obsidian", ".git", "node_modules") for p in caminho.parts):
             continue
-        rel = os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
+        chave = str(caminho.resolve())
+        if chave in itens:
+            itens[chave]["caminho"] = rel_servido(caminho)   # agora o HTTP alcança
+            continue
+        vault = raiz_do_vault(caminho)
         # o nome é o da PASTA da documentação, não o da `generated/` que só
         # guarda o derivado — é assim que quem escreve chama o mapa
-        item = {"caminho": rel, "nome": raiz_do_vault(caminho).name}
-        try:
-            with caminho.open(encoding="utf-8") as f:
-                g = json.load(f)
-            etapas = [n for n in g.get("nodes", []) if n.get("spine_kind") == "value-stage"]
-            item.update(
-                nos=len(g.get("nodes", [])),
-                relacoes=len(g.get("edges", [])),
-                etapas=len(etapas),
-                gerado_em=g.get("generated_at"),
-            )
-        except (OSError, json.JSONDecodeError) as exc:
-            item["erro"] = str(exc)
-        achados.append(item)
+        item = {"abs": chave, "caminho": rel_servido(caminho), "nome": vault.name,
+                "vault": str(vault), "estante": False, "sumiu": False}
+        item.update(resumo_do_grafo(caminho))
+        itens[chave] = item
+
+    achados = list(itens.values())
+    # estante no topo (mais recente primeiro), varredura depois em ordem de nome
+    achados.sort(key=lambda i: (not i["estante"],
+                                -_ordem_tempo(i.get("aberto_em")) if i["estante"] else 0,
+                                i.get("nome") or ""))
     return achados
 
 
@@ -235,10 +371,37 @@ class PonteNotocorda:
     # -- API exposta ao viewer ----------------------------------------------
     def info(self) -> dict:
         return {"modo": "desktop", "raiz": str(RAIZ), "vault": str(VAULT),
-                "base": str(BASE), "porta": self.porta}
+                "base": str(BASE), "porta": self.porta, "estante": str(ESTANTE)}
 
     def listar_grafos(self) -> list[dict]:
         return listar_grafos()
+
+    def esquecer_mapa(self, alvo: str) -> dict:
+        """Tira o mapa da estante. Não toca em nada no disco do mapa."""
+        return {"ok": esquecer_da_estante(alvo)}
+
+    def abrir_mapa(self, alvo: str) -> dict:
+        """Reabre um mapa pelo caminho absoluto — inclusive fora da pasta servida.
+
+        Quando o mapa mora fora do que o HTTP alcança, a pasta servida é
+        reancorada no novo ancestral comum. A porta continua a mesma (o
+        handler lê o BASE a cada requisição), então basta à interface navegar
+        para a URL devolvida.
+        """
+        try:
+            caminho = Path(alvo).expanduser()
+            if not caminho.exists():
+                return {"ok": False, "erro": f"não encontrei {alvo} — o mapa saiu do lugar?"}
+            grafo = resolver_mapa(caminho)
+            dados = json.loads(grafo.read_text(encoding="utf-8"))
+            if not isinstance(dados.get("nodes"), list):
+                return {"ok": False, "erro": f"{grafo.name} não parece um graph.json (sem `nodes`)"}
+            abrir_mapa(grafo)   # a função do módulo, que reancora BASE/VAULT
+            guardar_na_estante(grafo)
+            return {"ok": True, "url": montar_url(self.porta, grafo),
+                    "nome": raiz_do_vault(grafo).name, "caminho": str(grafo)}
+        except Exception as exc:  # noqa: BLE001 - devolvido à interface
+            return {"ok": False, "erro": str(exc)}
 
     def escolher_grafo(self) -> dict:
         """Diálogo nativo para abrir a PASTA de um mapa — isto é uma
@@ -248,9 +411,8 @@ class PonteNotocorda:
         escreve pensa nos Markdown. O grafo é compilado na hora se estiver
         faltando ou velho.
 
-        Devolve o caminho relativo quando a pasta mora dentro da raiz servida
-        (aí a interface só troca o `?graph=`), e o conteúdo já lido quando ela
-        vem de fora — nesse caso o viewer o guarda na sessão do navegador.
+        Abrir daqui é o mesmo que abrir da estante — inclusive guardar o mapa
+        nela: um mapa escolhido uma vez não deve precisar ser reprocurado.
         """
         try:
             import webview
@@ -264,26 +426,7 @@ class PonteNotocorda:
             )
             if not escolha:
                 return {"ok": False, "cancelado": True}
-
-            pasta = Path(escolha[0]).resolve()
-            try:
-                caminho = resolver_mapa(pasta)
-            except ValueError as exc:
-                return {"ok": False, "erro": str(exc)}
-            dados = json.loads(caminho.read_text(encoding="utf-8"))
-            if not isinstance(dados.get("nodes"), list):
-                return {"ok": False, "erro": f"{caminho.name} não parece um graph.json (sem `nodes`)"}
-            if caminho.is_relative_to(BASE):
-                relativo = os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
-            else:
-                relativo = None  # fora do que o HTTP serve: viaja pela sessão
-            return {
-                "ok": True,
-                "caminho": str(caminho),
-                "relativo": relativo,
-                "nome": raiz_do_vault(caminho).name,
-                "conteudo": None if relativo else dados,
-            }
+            return self.abrir_mapa(str(Path(escolha[0]).resolve()))
         except Exception as exc:  # noqa: BLE001 - devolvido à interface
             return {"ok": False, "erro": str(exc)}
 
@@ -351,8 +494,15 @@ def main() -> int:
                     help=f"pasta da documentação a abrir (padrão: {GRAFO_PADRAO}); "
                          "aceita também um graph.json direto")
     ap.add_argument("--listar", action="store_true", help="lista os mapas disponíveis e sai")
+    ap.add_argument("--esquecer", metavar="MAPA",
+                    help="tira um mapa da estante (nome ou caminho) e sai")
     ap.add_argument("--teste", action="store_true", help="abre e fecha a janela — checagem do ambiente")
     args = ap.parse_args()
+
+    if args.esquecer:
+        achou = esquecer_da_estante(args.esquecer)
+        print(f"{'esqueci' if achou else 'não estava na estante'}: {args.esquecer}")
+        return 0 if achou else 1
 
     alvo = Path(args.mapa)
     alvo = (alvo if alvo.is_absolute() else Path.cwd() / alvo).resolve()
@@ -370,13 +520,18 @@ def main() -> int:
     abrir_mapa(grafo)
 
     if args.listar:
+        print(f"estante: {ESTANTE}")
         for g in listar_grafos():
-            if "erro" in g:
-                print(f"  ✗ {g['caminho']}: {g['erro']}")
+            marca = "✗" if g.get("erro") else ("★" if g["estante"] else "·")
+            onde = g.get("caminho") or g["abs"]
+            if g.get("erro"):
+                print(f"  {marca} {g['nome']}  ({onde}): {g['erro']}")
             else:
-                print(f"  · {g['nome']}  ({g['caminho']})  —  {g['nos']} nós, "
-                      f"{g['relacoes']} relações, {g['etapas']} etapas")
+                print(f"  {marca} {g['nome']}  ({onde})  —  {g.get('nos', '?')} nós, "
+                      f"{g.get('relacoes', '?')} relações, {g.get('etapas', '?')} etapas")
         return 0
+
+    guardar_na_estante(grafo)   # abriu, entrou na estante
 
     try:
         import webview

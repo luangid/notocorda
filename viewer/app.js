@@ -84,7 +84,7 @@ class NotocordaApp {
       revealed: {},
       openGroups: { espinha:true, capacidades:true, atual:true, tobe:false, sistemas:true, dados:false, evidencias:false, problemas:true, areas:true },
       density: 1, spineOp: 0.4, repulsao: 0.7, fluid: 0.5,
-      cloudOp: 1, curOp: 1, edgeOp: 1, edgeW: 1, gridOp: 1,
+      cloudOp: 1, curOp: 1, edgeOp: 1, edgeW: 1, gridOp: 1, cloudPad: 1,
       indexCollapsed: false, inspectorCollapsed: false,
       spacing: 1, multi: new Set(), marquee: null, tool: 'pan', visual: 'prancha',
       fineOpen: false, aparenciaOpen: true,
@@ -555,15 +555,38 @@ class NotocordaApp {
       if (n.layer === 'operational' && shown) t *= this.state.curOp;
       n.talpha = t; n.alpha += (t - n.alpha) * Math.min(1, dt * 8); n.yoff += (0 - n.yoff) * Math.min(1, dt * 7);
     });
+    // As ligações têm alpha PRÓPRIO, e não o mínimo entre as pontas: uma aresta
+    // de outro cenário some sozinha na troca de nível, mesmo com as duas caixas
+    // continuando em cena. Sem isso as caixas faziam fade e as setas sumiam de
+    // uma vez, o que denuncia o corte.
+    const scenId = this.curLevel().scenId;
+    this.edges.forEach(e => {
+      const a = this.map[e.source], b = this.map[e.target];
+      const t = (!scenId || this.edgeInScenario(e)) ? Math.min(a.talpha, b.talpha) : 0;
+      e.talpha = t;
+      e.alpha = e.alpha == null ? t : e.alpha + (t - e.alpha) * Math.min(1, dt * 8);
+    });
   }
   // Acomoda tudo de uma vez (sem desenhar) e congela. Chamado ao abrir e
   // sempre que a cena muda de conteúdo — nunca a cada quadro.
+  //
+  // Acomoda só a POSIÇÃO. A aparência (alpha das caixas e das ligações, e o
+  // deslize `yoff`) é guardada e devolvida: `step` também integra o fade, e
+  // adiantá-lo aqui, fora da tela, entregava a cena já pronta — a troca de
+  // nível aparecia sem transição nenhuma. O fade tem de acontecer na tela, que
+  // é onde se vê.
   assentar(quadros) {
     const q = quadros || 70;
+    const aparencia = this.nodes.map(n => [n.alpha, n.yoff]);
+    const aparenciaE = this.edges.map(e => e.alpha);
     this._integrar = true;
     for (let i = 0; i < q; i++) this.step(1 / 60);
     this._integrar = false;
-    this.nodes.forEach(n => { n.vx = 0; n.vy = 0; });
+    // `talpha` NÃO volta: é o alvo, e a nuvem se forma por ele. Assim a forma
+    // já nasce final (nada de casco crescendo caixa a caixa) enquanto a cor e
+    // as caixas entram em fade.
+    this.nodes.forEach((n, i) => { n.vx = 0; n.vy = 0; n.alpha = aparencia[i][0]; n.yoff = aparencia[i][1]; });
+    this.edges.forEach((e, i) => { e.alpha = aparenciaE[i]; });
   }
   fitView() {
     const vis = this.visibleNodes(); if (!vis.length) return;
@@ -589,20 +612,20 @@ class NotocordaApp {
     ctx.fillStyle = p.papel; ctx.fillRect(0, 0, this.W, this.H);
     this.drawGrid(p); this.drawClouds(p); this.drawRegions(p);
     const focusId = this.state.selected || this.hoverId; const path = this._path;
-    const lv = this.curLevel();
     // Três pesos de traço, como as três ordens de linha de uma carta: o eixo em
     // tinta cheia, a ligação com a periferia em meia-tinta, o resto em traço
     // leve. O sinal NÃO entra aqui — ele é reservado ao foco (regra da paleta).
     const meiaTinta = mixHex(p.tinta, p.papel, 0.45);
     const tr = this.trilhaMarcas(); this._trilhaNos = tr.nos;
     this.edges.forEach(e => {
-      if (lv.scenId && !this.edgeInScenario(e)) return;
+      // o recorte por cenário já foi decidido em `step` (e.talpha); aqui só o
+      // alpha animado importa, para a aresta sair de cena em fade e não de corte
+      if (!(e.alpha > 0.02)) return;
       const a = this.map[e.source], b = this.map[e.target];
-      if (a.alpha < 0.02 || b.alpha < 0.02) return;
       const s = this.w2s(a.x, a.y + a.yoff), t = this.w2s(b.x, b.y + b.yoff);
       const spine = (e.type === 'advances');
       const inc = focusId && (path ? path.edgesP.has(e.source + '>' + e.target) : (e.source === focusId || e.target === focusId));
-      let al = Math.min(a.alpha, b.alpha); ctx.save();
+      let al = e.alpha; ctx.save();
       const aE = a.layer === 'essential', bE = b.layer === 'essential'; const cat = aE && bE ? 'ss' : ((aE || bE) ? 'sp' : 'pp');
       let col = cat === 'ss' ? p.tinta : (cat === 'sp' ? meiaTinta : p.traco), lw = 1.2, dash = null, arrow = true;
       if (spine) { col = p.tinta; lw = 3 * Math.max(.7, Math.min(1.2, z)); }
@@ -883,8 +906,13 @@ class NotocordaApp {
   }
   // Retângulos de tela de cada célula visível, e por área: quem é membro e
   // quem é ESTRANHO (não pertence e cai por cima). O estranho vira mordida.
+  // TUDO AQUI É EM COORDENADA DE MAPA, nunca de tela. A nuvem é uma feição do
+  // mapa, como as células: o zoom só a aproxima, não a remodela. (Era calculada
+  // em pixels de tela com folgas constantes em tela, então aproximar encolhia a
+  // folga em relação ao mapa e o contorno mudava de forma junto com o zoom: a
+  // nuvem ficava justa de perto e inchada de longe.) Quem converte para tela é
+  // o `drawClouds`, no fim.
   _cloudGeom() {
-    const z = this.cam.z;
     // Membros pelo ALVO (talpha), não pelo alpha animado: na troca de nível os
     // nós entram um a um conforme o alpha sobe passando de 0.05, e isso fazia o
     // casco crescer e o rótulo saltar a cada quadro (a "vibração"). Com o alvo,
@@ -893,11 +921,10 @@ class NotocordaApp {
     // Posição SEM yoff/_boff: são animações de entrada, e a nuvem que as segue
     // treme as quinas a cada quadro na troca de nível — mesma regra do talpha,
     // a forma nasce final e os nós deslizam para dentro dela.
-    const rect = n => {
-      const s = this.w2s(n.x, n.y);
-      return { id: n.id, cx: s.x, cy: s.y,
-        hw: ((n._bw || this.nodeR(n) * 2) / 2) * z, hh: ((n._bh || this.nodeR(n) * 2) / 2) * z };
-    };
+    const rect = n => ({
+      id: n.id, cx: n.x, cy: n.y,
+      hw: (n._bw || this.nodeR(n) * 2) / 2, hh: (n._bh || this.nodeR(n) * 2) / 2,
+    });
     const rects = vis.map(rect);
     // A espinha (value-stage) E o modelo essencial (capacidades, invariantes)
     // NUNCA são mordidos: são OUTRO NÍVEL, não moram numa área — a aguada da
@@ -935,7 +962,7 @@ class NotocordaApp {
     // que o salto entre as faixas por tipo dentro da coluna — realizações e
     // problemas da mesma coluna ficam na mesma bolha, como na prancha).
     const espaco = this.state.spacing || 1;
-    const MERGE_X = 120 * espaco * z, MERGE_Y = 760 * espaco * z;
+    const MERGE_X = 120 * espaco, MERGE_Y = 760 * espaco;
     Object.keys(areas).forEach(a => {
       const A = areas[a];
       A.count = A.members.length;
@@ -943,7 +970,8 @@ class NotocordaApp {
       A.clusters = this._spatialClusters(A.members, MERGE_X, MERGE_Y).map(members => {
         let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
         members.forEach(r => { x0 = Math.min(x0, r.cx - r.hw); y0 = Math.min(y0, r.cy - r.hh); x1 = Math.max(x1, r.cx + r.hw); y1 = Math.max(y1, r.cy + r.hh); });
-        const pad = 70;
+        // colher estranhos com folga suficiente para o afastamento alcançá-los
+        const pad = Math.max(70, this._cloudPads().MORDE * 2);
         // estranho = quem não é da ÁREA (outro enclave dela não morde o irmão)
         const foreign = rects.filter(r => !A.ids.has(r.id) && !semMordida.has(r.id)
           && r.cx + r.hw > x0 - pad && r.cx - r.hw < x1 + pad && r.cy + r.hh > y0 - pad && r.cy - r.hh < y1 + pad);
@@ -976,8 +1004,21 @@ class NotocordaApp {
   // problema lá embaixo) a nuvem ESTRANGULA numa cintura, como um istmo numa
   // carta; as pontas fecham em calota elíptica. O polígono sai denso e cru —
   // quem arredonda é o Chaikin do _dentBoundary, na sequência.
+  // Folgas da nuvem, em unidade de MAPA (a caixa de uma célula tem ~170×52).
+  // PERTENCIMENTO = quanto a nuvem estende além da caixa do membro.
+  // AFASTAMENTO = quanto ela recua de um intruso; de propósito MAIOR, para
+  // sobrar um vão de papel entre onde acaba uma área e onde começa a vizinha.
+  // O multiplicador vem do painel Aparência: há mapa que pede nuvem justa e
+  // mapa que pede nuvem folgada, e isso é gosto, não regra.
+  _cloudPads() {
+    const k = this.state.cloudPad == null ? 1 : this.state.cloudPad;
+    return { INFL: 18 * k, MORDE: 32 * k };
+  }
+  // Medidas em unidade de MAPA. A calota acompanha a folga (mesma proporção de
+  // sempre, 1,45×), senão o topo e o pé continuariam inchados quando a nuvem
+  // fosse apertada pelo painel.
   _outlineOrganico(members, infl) {
-    const PASSO = 14, CAP = 26;
+    const PASSO = 14, CAP = infl * 1.45;
     let y0 = 1e9, y1 = -1e9;
     members.forEach(m => { y0 = Math.min(y0, m.cy - m.hh); y1 = Math.max(y1, m.cy + m.hh); });
     y0 -= infl; y1 += infl;
@@ -1111,11 +1152,16 @@ class NotocordaApp {
     // longe — coluna de outra área — ganha bolha satélite da mesma cor, e a
     // sobreposição dela com a nuvem hospedeira é o sinal de pertencimento
     // duplo. O rótulo vai só no enclave maior, com a contagem da área inteira.
-    // INFL = raio de PERTENCIMENTO (quanto a nuvem estende além da caixa do
-    // membro). MORDE = raio de AFASTAMENTO (quanto ela recua de um intruso).
-    // Afastamento é de propósito MAIOR que pertencimento, para sobrar um vão de
-    // papel entre onde acaba a área da célula e onde começa a área vizinha.
-    const INFL_X = 18, MORDE = 26 + 6 * z;
+    // As folgas (ver `_cloudPads`) são de MAPA, então a nuvem tem a mesma forma
+    // em qualquer zoom — o que muda é só o tamanho na tela, como em toda feição
+    // do mapa. A conversão acontece aqui embaixo, depois da forma decidida.
+    const { INFL: INFL_X, MORDE } = this._cloudPads();
+    const t = pt => { const s = this.w2s(pt[0], pt[1]); return [s.x, s.y]; };
+    const tRect = r => {
+      const s = this.w2s(r.cx, r.cy);
+      return { id: r.id, cx: s.x, cy: s.y, hw: r.hw * z, hh: r.hh * z };
+    };
+    const MORDE_S = MORDE * z;
     const rotulos = [];
     areasK.forEach(area => {
       // área desligada no menu de nuvens não desenha (a em foco sempre aparece)
@@ -1131,17 +1177,19 @@ class NotocordaApp {
         const hull0 = this._outlineOrganico(cl.members, INFL_X);
         if (hull0.length < 3) return;
         // amassa o contorno em volta dos estranhos que tocam a borda
-        const hull = this._dentBoundary(hull0, cl.foreign, MORDE, [mcx, mcy]);
+        const hullW = this._dentBoundary(hull0, cl.foreign, MORDE, [mcx, mcy]);
         // estranhos que sobraram DENTRO do contorno amassado (intrusos no miolo)
         // ainda viram buraco; os de borda já saíram pelo dente.
-        const dentro = cl.foreign.filter(r => C.pointInPoly(r.cx, r.cy, hull));
+        const dentroW = cl.foreign.filter(r => C.pointInPoly(r.cx, r.cy, hullW));
+        // daqui para baixo é TELA: a forma já foi decidida em coordenada de mapa
+        const hull = hullW.map(t), dentro = dentroW.map(tRect);
         // corpo na camada de fora: enche o contorno, fura só o miolo, colore
         octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, off.el.width, off.el.height);
         octx.setTransform(dpr, 0, 0, dpr, 0, 0);
         octx.globalCompositeOperation = 'source-over'; octx.fillStyle = '#fff';
         this.smoothHull(octx, hull); octx.fill();
         octx.globalCompositeOperation = 'destination-out';
-        dentro.forEach(r => { this.roundRect(octx, r.cx - r.hw - MORDE, r.cy - r.hh - MORDE, (r.hw + MORDE) * 2, (r.hh + MORDE) * 2, 18); octx.fill(); });
+        dentro.forEach(r => { this.roundRect(octx, r.cx - r.hw - MORDE_S, r.cy - r.hh - MORDE_S, (r.hw + MORDE_S) * 2, (r.hh + MORDE_S) * 2, MORDE_S * 0.56); octx.fill(); });
         octx.globalCompositeOperation = 'source-in';
         octx.setTransform(1, 0, 0, 1, 0, 0);
         octx.fillStyle = this.areaTint(area); octx.fillRect(0, 0, off.el.width, off.el.height);
@@ -1164,7 +1212,7 @@ class NotocordaApp {
           ctx.globalAlpha = (active ? 0.7 : (dim ? 0.14 : 0.42)) * fade;
           ctx.strokeStyle = this.areaTintaRotulo(area); ctx.lineWidth = 1.1;
           ctx.setLineDash([5, 4]);
-          dentro.forEach(r => { this.roundRect(ctx, r.cx - r.hw - MORDE, r.cy - r.hh - MORDE, (r.hw + MORDE) * 2, (r.hh + MORDE) * 2, 16); ctx.stroke(); });
+          dentro.forEach(r => { this.roundRect(ctx, r.cx - r.hw - MORDE_S, r.cy - r.hh - MORDE_S, (r.hw + MORDE_S) * 2, (r.hh + MORDE_S) * 2, MORDE_S * 0.5); ctx.stroke(); });
           ctx.setLineDash([]); ctx.restore();
         }
         this._areaShapes.push({ area, hull, foreign: dentro, count: A.count });
@@ -1277,9 +1325,12 @@ class NotocordaApp {
   // graph.json válido abre aqui. Trocar de mapa recarrega a página com outro
   // `?graph=` — estado de prancha é por mapa, e recarregar é o jeito honesto
   // de zerar câmera, trilha e níveis.
+  // A lista tem duas seções, porque são duas naturezas: a ESTANTE é o que
+  // esta pessoa já abriu (mora onde quiser no disco, sobrevive a fechar o
+  // app) e "por perto" é o que se acha varrendo a pasta servida agora.
   async listarGrafos() {
     const lista = this.$('abrir-lista');
-    lista.innerHTML = '<div style="padding:10px 12px; font-size:11.5px; opacity:.6;">procurando…</div>';
+    lista.innerHTML = '<div class="abrir-vazio">procurando…</div>';
     this.$('abrir-modo').textContent = this._modo === 'desktop' ? 'desktop' : 'navegador';
     // no desktop escolhe-se a PASTA da documentação (o Python compila o que
     // faltar); no navegador não há compilador, então só resta o arquivo pronto
@@ -1287,22 +1338,64 @@ class NotocordaApp {
       this._modo === 'desktop' ? 'Escolher pasta do mapa…' : 'Escolher arquivo…';
     let grafos = [];
     try { grafos = await NotocordaBridge.grafosDisponiveis(); } catch (e) { grafos = []; }
+    this._grafos = grafos;
     const atual = (this.graphUrl || '').replace(/^\.\.\//, '');
-    lista.innerHTML = grafos.length ? grafos.map(g => {
-      const resumo = g.erro ? g.erro : `${g.nos} nós · ${g.etapas || 0} etapas`;
-      return `<button class="abrir-row ${g.caminho === atual ? 'atual' : ''}" data-act="abrir-grafo"
-        data-caminho="${this.esc(g.caminho)}" data-nome="${this.esc(g.nome || '')}">
-        <span style="flex:1; min-width:0;">
-          <span class="abrir-nome">${this.esc(g.nome || g.caminho)}</span>
-          <span class="abrir-cam">${this.esc(g.caminho)}</span>
-        </span>
-        <span class="abrir-meta">${this.esc(resumo)}</span></button>`;
-    }).join('') : '<div style="padding:10px 12px; font-size:11.5px; opacity:.6;">nenhum graph.json encontrado por aqui — use "Escolher arquivo…".</div>';
+
+    const linha = (g, i) => {
+      const eAtual = !!g.caminho && g.caminho === atual;
+      const resumo = g.erro ? g.erro
+        : `${g.nos == null ? '?' : g.nos} nós · ${g.etapas || 0} etapas`;
+      const onde = g.caminho || this.encurtar(g.abs || '');
+      const esquecer = g.estante
+        ? `<button class="abrir-x" data-act="esquecer-mapa" data-i="${i}"
+             title="tirar da estante (não apaga nada em disco)">×</button>` : '';
+      return `<div class="abrir-item ${eAtual ? 'atual' : ''} ${g.sumiu ? 'sumiu' : ''}">
+        <button class="abrir-row" data-act="abrir-grafo" data-i="${i}">
+          <span style="flex:1; min-width:0;">
+            <span class="abrir-nome">${this.esc(g.nome || onde)}</span>
+            <span class="abrir-cam">${this.esc(onde)}</span>
+          </span>
+          <span class="abrir-meta">${this.esc(resumo)}</span>
+        </button>${esquecer}</div>`;
+    };
+
+    const secao = (titulo, itens) => itens.length
+      ? `<div class="abrir-sec">${titulo}</div>` + itens.map(([g, i]) => linha(g, i)).join('') : '';
+    const comIndice = grafos.map((g, i) => [g, i]);
+    const html = secao('estante', comIndice.filter(([g]) => g.estante))
+      + secao('por perto', comIndice.filter(([g]) => !g.estante));
+    lista.innerHTML = html || `<div class="abrir-vazio">nenhum mapa por aqui ainda — use
+      "${this._modo === 'desktop' ? 'Escolher pasta do mapa…' : 'Escolher arquivo…'}".
+      O que você abrir fica guardado nesta lista.</div>`;
+  }
+  // caminho absoluto longo cabe mal na linha: mostra o fim, que é o que
+  // distingue um mapa do outro
+  encurtar(caminho, max = 46) {
+    if (!caminho || caminho.length <= max) return caminho;
+    return '…' + caminho.slice(-(max - 1));
+  }
+
+  async abrirGrafo(i) {
+    const g = (this._grafos || [])[i];
+    if (!g) return;
+    if (g.sumiu && !confirm(`"${g.nome}" não está mais em ${g.abs || g.caminho}.\nTentar abrir mesmo assim?`)) return;
+    const r = await NotocordaBridge.abrirMapa(g);
+    if (!r || !r.ok) { this.aviso((r && r.erro) || 'não consegui abrir este mapa'); return; }
+    if (r.url) { this.irPara(r.url); return; }          // desktop: o Python reancorou o servidor
+    this.trocarGrafo({ url: '../' + r.caminho, org: r.nome });
+  }
+  async esquecerMapa(i) {
+    const g = (this._grafos || [])[i];
+    if (!g) return;
+    await NotocordaBridge.esquecerMapa(g);
+    this.aviso(`"${g.nome}" saiu da estante — o mapa continua no disco`);
+    this.listarGrafos();
   }
   async escolherArquivo() {
     const r = await NotocordaBridge.escolherGrafo();
     if (!r || r.cancelado) return;
-    if (!r.ok) { this.aviso(r.erro || 'não consegui abrir o arquivo'); return; }
+    if (!r.ok) { this.aviso(r.erro || 'não consegui abrir o mapa'); return; }
+    if (r.url) { this.irPara(r.url); return; }           // desktop: já entrou na estante
     if (r.relativo) { this.trocarGrafo({ url: '../' + r.relativo, org: r.nome }); return; }
     // arquivo de fora da raiz servida (ou do navegador): viaja pela sessão
     try {
@@ -1310,6 +1403,14 @@ class NotocordaApp {
       sessionStorage.setItem('notocorda.grafo.origem', r.caminho || r.nome || 'arquivo');
     } catch (e) { this.aviso('grafo grande demais para a sessão do navegador'); return; }
     this.trocarGrafo({ url: 'session:', org: r.nome });
+  }
+  // navega para um endereço montado pelo Python, preservando o que é
+  // preferência da pessoa (a paleta) e zerando o que é do mapa antigo
+  irPara(url) {
+    const u = new URL(url, location.href);
+    ['level', 'view', 'trilha'].forEach(k => u.searchParams.delete(k));
+    u.searchParams.set('paleta', this.state.palette);
+    location.assign(u.toString());
   }
   trocarGrafo({ url, org }) {
     const qs = new URLSearchParams(location.search);
@@ -1341,7 +1442,17 @@ class NotocordaApp {
       if (r && r.ok) this.aviso((r.baixado ? 'view baixada: ' : 'view salva em ') + r.caminho);
       else this.aviso('não consegui salvar a view' + (r && r.erro ? ': ' + r.erro : ''));
     });
-    NotocordaBridge.pronta().then(modo => { this._modo = modo; });
+    NotocordaBridge.pronta().then(modo => {
+      this._modo = modo;
+      // no navegador é a interface que anota o mapa aberto na estante; no
+      // desktop o Python já anotou quando abriu
+      NotocordaBridge.guardarMapa({
+        caminho: (this.graphUrl || '').replace(/^\.\.\//, ''),
+        nome: (this.orgName || '').toLowerCase() || null,
+        nos: this.g.nodes.length,
+        etapas: this.g.nodes.filter(n => n.type === 'value-stage').length,
+      });
+    });
     // Arrastar a nota pelo cabeçalho. A posição é escrita direto no elemento
     // durante o gesto (sem re-render) e só vai para o estado ao soltar.
     this.$('cards-layer').addEventListener('mousedown', ev => {
@@ -1404,7 +1515,7 @@ class NotocordaApp {
       this.nodes.forEach(n => { if (n.layer === 'essential') { n.x = n.homeX; n.y = n.homeY; } });
       this.assentar(40); this.renderUI();
     });
-    ['density', 'spineOp', 'repulsao', 'cloudOp', 'curOp', 'edgeOp', 'edgeW', 'gridOp'].forEach(k => {
+    ['density', 'spineOp', 'repulsao', 'cloudOp', 'cloudPad', 'curOp', 'edgeOp', 'edgeW', 'gridOp'].forEach(k => {
       const el = this.$('rng-' + k); if (el) el.addEventListener('input', e => this.setState({ [k]: parseFloat(e.target.value) }));
     });
     // navegar clicando no mapa de situação (antes era um onclick no HTML)
@@ -1440,14 +1551,15 @@ class NotocordaApp {
       case 'toggle-fine': this.setState({ fineOpen: !st.fineOpen }); break;
       case 'toggle-aparencia': this.setState({ aparenciaOpen: !st.aparenciaOpen }); break;
       case 'reset-aparencia': {
-        this.setState({ cloudOp: 1, curOp: 1, spineOp: 0.4, edgeOp: 1, edgeW: 1, gridOp: 1 });
-        ['cloudOp:1', 'curOp:1', 'spineOp:0.4', 'edgeOp:1', 'edgeW:1', 'gridOp:1'].forEach(kv => {
+        this.setState({ cloudOp: 1, cloudPad: 1, curOp: 1, spineOp: 0.4, edgeOp: 1, edgeW: 1, gridOp: 1 });
+        ['cloudOp:1', 'cloudPad:1', 'curOp:1', 'spineOp:0.4', 'edgeOp:1', 'edgeW:1', 'gridOp:1'].forEach(kv => {
           const [k, v] = kv.split(':'); const el = this.$('rng-' + k); if (el) el.value = v;
         });
         break;
       }
       case 'toggle-abrir': this.setState({ abrirOpen: !st.abrirOpen }); if (this.state.abrirOpen) this.listarGrafos(); break;
-      case 'abrir-grafo': this.trocarGrafo({ url: '../' + d.caminho, org: d.nome }); break;
+      case 'abrir-grafo': this.abrirGrafo(+d.i); break;
+      case 'esquecer-mapa': this.esquecerMapa(+d.i); break;
       case 'escolher-arquivo': this.escolherArquivo(); break;
       case 'toggle-area-panel': this.setState({ areaPanel: !st.areaPanel }); break;
       case 'toggle-area-cloud': {
@@ -1760,6 +1872,7 @@ class NotocordaApp {
     if (st.aparenciaOpen) {
       const pct = v => Math.round(v * 100) + '%';
       this.$('val-cloudOp').textContent = pct(st.cloudOp);
+      this.$('val-cloudPad').textContent = fmt(st.cloudPad) + '×';
       this.$('val-curOp').textContent = pct(st.curOp);
       this.$('val-spineOp').textContent = pct(st.spineOp);
       this.$('val-edgeOp').textContent = pct(st.edgeOp);

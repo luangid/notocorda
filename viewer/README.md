@@ -88,14 +88,64 @@ textos, foco de teclado visível e `prefers-reduced-motion` respeitado
   célula sustenta). A largura do bloco é ajustada à largura do eixo, para o
   "enquadrar" não afastar a câmera a ponto de sumir com os rótulos.
 - A física só resolve sobreposição residual; ela não decide mais posição.
+- **Nuvens de área** (uma por área, contorno fechado como a divisa de uma
+  região num mapa): agrupam **todas as áreas de cada nó** (`areasOf`). Um nó
+  que pertence a duas áreas entra nas **duas** nuvens, então os cascos se
+  **sobrepõem** e o nó compartilhado cai na **interseção** — a sobreposição é
+  o sinal de pertencimento duplo, como num mapa onde duas regiões dividem uma
+  faixa. O layout continua plantando o nó numa coluna só (a área mais
+  específica), então o desenho fica organizado; só as nuvens é que se cruzam.
+  A **espinha** (value-stage) e o **modelo essencial** não entram em nuvem
+  nenhuma — eles vivem no eixo, não numa área. Quando um nó estranho toca a
+  **borda** de um casco, o contorno é **amassado** (`_dentBoundary`): cada
+  ponto do contorno é empurrado para dentro, em direção ao centro da área, até
+  sair do retângulo do intruso — um dente côncavo que o abraça por fora, como
+  apertar uma bolha. O dente é **arredondado** por suavização de Chaikin
+  (`_chaikin`, 2 passadas) para não ficar poligonal. Como é o **mesmo contorno**
+  no preenchimento e no pontilhado, os dois recuam juntos (antes a cor era
+  recortada mas o pontilhado cruzava reto por cima do buraco). A espinha nunca é
+  amassada — tem tinta cheia e a aguada passa por baixo dela. Intruso que sobra
+  no **miolo** (totalmente dentro de área que não é dele) ainda vira buraco
+  (`destination-out` fora de tela, para não apagar o graticule) e ganha um
+  **anel tracejado na cor da área** em volta — um enclave, deixando claro que a
+  célula não pertence ali.
+- **Troca de nível em fade.** `assentar()` acomoda só a **posição**: guarda e
+  devolve a aparência (`alpha` das caixas e das ligações, e o deslize `yoff`).
+  Sem isso os 45 passos de física que ele roda **fora da tela** também
+  integravam o fade, e a cena chegava pronta ao primeiro quadro — a troca
+  aparecia instantânea. O `talpha` (o alvo) **não** volta: a nuvem se forma por
+  ele, então a forma já nasce final enquanto a cor entra em fade. As ligações
+  ganharam `alpha` próprio (`step`), em vez do mínimo entre as pontas: uma
+  aresta de outro cenário some sozinha, sem as setas cortando enquanto as
+  caixas ainda desbotam. Cai a ~10% em 300 ms e zera em 600 ms.
+- **A nuvem é uma feição do MAPA, não da tela.** `_cloudGeom`,
+  `_outlineOrganico` e `_dentBoundary` trabalham em coordenada de mapa; a
+  conversão para tela acontece só no fim de `drawClouds`. Isso importa: quando
+  as folgas eram constantes em pixels de tela, aproximar encolhia a folga em
+  relação ao mapa e o **contorno mudava de forma junto com o zoom** — nuvem
+  justa de perto, inchada de longe. Agora o zoom só aproxima.
+  As duas folgas vêm de `_cloudPads()`: **pertencimento** (18 de mapa, quanto a
+  nuvem estende além da caixa) e **afastamento** (32, quanto ela recua de um
+  intruso — de propósito maior, para sobrar um vão de papel entre uma área e a
+  vizinha). O multiplicador é o "Folga das nuvens" do painel Aparência
+  (`state.cloudPad`, 0,3×–2,5×): há mapa que pede nuvem justa e mapa que pede
+  nuvem folgada, e isso é gosto, não regra. A calota das pontas acompanha a
+  folga (1,45×), senão o topo e o pé ficariam inchados na nuvem apertada.
+- **Ligar/desligar nuvens**: o inspetor tem o menu "Nuvens de área" (espelha
+  "Camadas visíveis"), uma linha por área com interruptor, e um "todas" no
+  cabeçalho. `state.areaHidden` guarda as ocultas por nome; `drawClouds` pula
+  quem está oculto (a área em foco sempre aparece).
 - As **caixas crescem para baixo**: o nome cabe inteiro (até 5 linhas) e o
   topo permanece onde estaria a caixa de duas linhas, para o eixo e as faixas
   não subirem junto com o texto.
-- Os **rótulos das nuvens** são colocados por último, com resolução de
-  colisão: quem bateria em outro sobe até achar folga. O nome usa tinta de
-  rótulo (mais escura e saturada que a mancha da nuvem) sobre um **halo** na
-  cor do papel — o mesmo recurso que uma carta usa para o topônimo continuar
-  legível por cima de relevo, água ou malha.
+- Os **rótulos das nuvens** são desenhados **por último — acima das arestas e
+  dos nós** (`drawAreaLabels`). As nuvens ficam no fundo, como aguada, mas o
+  nome vai por cima; se ficasse embaixo, a formiga marchante das ligações
+  tracejadas passaria por cima do texto e ele "piscaria". A colocação é gulosa
+  (nuvens sobrepostas empilhariam os nomes, então quem colide sobe até achar
+  folga) e o nome usa tinta de rótulo (mais escura e saturada que a mancha da
+  nuvem) sobre um **halo** na cor do papel — o mesmo recurso que uma carta usa
+  para o topônimo continuar legível por cima de relevo, água ou malha.
 
 Conferência rápida do layout (roda em Node, sem navegador):
 
@@ -108,15 +158,32 @@ console.log('cruzamentos no eixo:', g.cruzamentos, '| colunas:', g.colunas.map(c
 ## Abrir outro mapa
 
 Isto é **ferramenta**, não o leitor de um mapa só: o botão **Abrir mapa**
-lista os mapas ao alcance (no desktop o Python varre a pasta servida; no
-navegador sondamos os caminhos de convenção) e abre qualquer outro do disco —
-no desktop o diálogo pede a **pasta** da documentação e compila o que for
-preciso; no navegador, que não tem compilador, pede o `graph.json`.
+abre qualquer `graph.json` do disco — no desktop o diálogo pede a **pasta**
+da documentação e compila o que for preciso; no navegador, que não tem
+compilador, pede o `graph.json` pronto.
+
+A lista tem **duas seções**, porque são duas naturezas:
+
+* **estante** — os mapas que esta pessoa já abriu, morem onde morarem no
+  disco. Sobrevivem a fechar o app. Um mapa entra na estante ao ser aberto e
+  sai pelo `×` da linha (que não apaga nada em disco).
+* **por perto** — todo `graph.json` sob a pasta servida agora. Acha mapas
+  vizinhos que nunca foram abertos.
+
+A estante mora **fora do repositório**: no desktop, em
+`~/.config/notocorda/estante.json` (respeita `XDG_CONFIG_HOME`); no
+navegador, no `localStorage`. É de propósito — a ferramenta é pública, e
+saber onde os mapas de uma organização moram no disco é dado dela.
+
+Abrir um mapa fora da pasta servida **reancora o servidor** no novo ancestral
+comum, na mesma porta: `HandlerSilencioso` lê o `BASE` a cada requisição, e o
+Python devolve à interface o endereço a navegar. Por isso mapa de fora não
+precisa mais viajar pelo `sessionStorage` — só o arquivo escolhido no
+navegador ainda faz isso (`?graph=session:`, some ao fechar a aba).
 
 Trocar de mapa **recarrega a página** com outro `?graph=`: é o jeito honesto
-de zerar câmera, trilha e níveis, que são por mapa. Arquivo fora da pasta
-servida não tem URL, então viaja pelo `sessionStorage` e abre com
-`?graph=session:` — some ao fechar a aba.
+de zerar câmera, trilha e níveis, que são por mapa. A paleta atravessa a
+troca, porque é preferência de quem lê, não do mapa.
 
 O nome no cabeçalho vem de `?org=` (preenchido com a pasta do grafo ao abrir
 pela lista).
@@ -196,6 +263,14 @@ célula correspondente na prancha.
   recarregue com `?view=`.
 - 3 paletas cartográficas (carta/sonda/ozalid), minimapa em moldura de mapa
   de situação, busca no índice.
+- Painel **Aparência** (abaixo do minimapa) para experimentar sem tocar no
+  código: opacidade das nuvens (`cloudOp`), **folga das nuvens** (`cloudPad`),
+  opacidade da camada atual (`curOp`), da espinha (`spineOp`), das arestas
+  (`edgeOp`), grossura das arestas (`edgeW`) e do graticulado (`gridOp`), com
+  "Restaurar padrões". São só multiplicadores de desenho — nada disso vai para
+  a view nem para o mapa.
+- Menu de **nuvens** por área (liga/desliga cada uma, e "todas"), irmão de
+  "Camadas visíveis".
 
 ## O que fica para as próximas iterações
 
