@@ -2,9 +2,18 @@
 # Notocorda — lançador de terminal.
 #
 #   ./notocorda                       abre o exemplo da cafeteria
-#   ./notocorda --listar              mostra os mapas disponíveis
+#   ./notocorda --listar              a estante (★) e o que existe por perto (·)
 #   ./notocorda ../meu-vault          abre a PASTA da documentação de outro mapa
+#   ./notocorda --esquecer NOME       tira um mapa da estante
 #   ./notocorda --web                 só serve no navegador, sem janela
+#
+# Lentes de consulta (a interface de terminal, pensada para agentes de IA —
+# devolvem recortes do grafo em YAML; ver compiler/consulta.py):
+#   ./notocorda check ../meu-vault            saúde (exit 1 se houver erro)
+#   ./notocorda view ../meu-vault --nivel 0   recorte por nível/tipo/área
+#   ./notocorda focus ../meu-vault <id>       vizinhança de uma caixa
+#   ./notocorda impacto ../meu-vault <id>     quem para se a caixa parar
+#   ./notocorda resumo ../meu-vault           briefing executivo
 #
 # Funciona de qualquer diretório: resolve a raiz do repositório a partir do
 # próprio arquivo, inclusive quando chamado por link simbólico em ~/.local/bin.
@@ -26,6 +35,12 @@ else
   PY="$(command -v python3)"
   echo "aviso: .venv não encontrado — usando $PY (a janela nativa precisa de pywebview)" >&2
 fi
+
+# Lentes de consulta: delegam para compiler/consulta.py.
+case "${1:-}" in
+  check|view|focus|impacto|resumo)
+    exec "$PY" "$RAIZ/compiler/consulta.py" "$@" ;;
+esac
 
 # --web: serve a pasta e abre no navegador, sem depender da janela nativa.
 # Só alcança mapas debaixo do repositório; para um mapa de fora, use a janela.
