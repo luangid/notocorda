@@ -1,6 +1,6 @@
 {
   "schema_version": "0.2",
-  "generated_at": "2026-07-24T20:24:21.384792Z",
+  "generated_at": "2026-07-25T19:20:26.130642Z",
   "source": {
     "commit": null,
     "dirty": true
@@ -14,9 +14,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de saber quem compra, o que prefere e com que frequência volta.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.conhecer-o-cliente.md"
       }
@@ -29,9 +27,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa preparando.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-consistencia-da-bebida.md"
       }
@@ -44,9 +40,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação precisa deles.",
-      "areas": [
-        "area.suprimentos"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-insumos.md"
       }
@@ -59,9 +53,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-transferencia-correta.md"
       }
@@ -74,9 +66,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.",
-      "areas": [
-        "area.pessoas"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.gerenciar-equipe.md"
       }
@@ -89,9 +79,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega ou resolução.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.gerenciar-pedidos.md"
       }
@@ -104,9 +92,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais contas devidas — no valor e no prazo acordados.",
-      "areas": [
-        "area.financeiro"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.honrar-compromissos-financeiros.md"
       }
@@ -119,9 +105,7 @@
       "spine_kind": "capability",
       "confidence": "hypothesis",
       "definition": "Capacidade de cobrar do cliente o valor correto no ato da venda e reconhecer esse recebimento no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada de honrar compromissos financeiros.",
-      "areas": [
-        "area.financeiro"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/capabilities/capability.processar-pagamentos.md"
       }
@@ -134,9 +118,7 @@
       "spine_kind": "event",
       "confidence": "hypothesis",
       "definition": "Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.",
-      "areas": [
-        "area.suprimentos"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/events/event.entrega-de-insumos-aceita.md"
       }
@@ -149,9 +131,7 @@
       "spine_kind": "invariant",
       "confidence": "hypothesis",
       "definition": "O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa batem com o que foi registrado.",
-      "areas": [
-        "area.financeiro"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/invariants/invariant.caixa-sempre-conciliado.md"
       }
@@ -164,9 +144,7 @@
       "spine_kind": "invariant",
       "confidence": "hypothesis",
       "definition": "O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de uma bebida.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/invariants/invariant.insumo-vencido-nao-utilizado.md"
       }
@@ -192,9 +170,7 @@
       "spine_kind": "obligation",
       "confidence": "hypothesis",
       "definition": "O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega de insumos.",
-      "areas": [
-        "area.financeiro"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/obligations/obligation.pagar-fornecedor.md"
       }
@@ -207,9 +183,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias para operar o dia.",
-      "areas": [
-        "area.suprimentos"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.abastecer-operacao.md"
       }
@@ -222,9 +196,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: a intenção de compra do cliente é capturada de forma acionável, qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.coletar-pedido.md"
       }
@@ -237,9 +209,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado de terceiros para revenda.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.disponibilizar-produto.md"
       }
@@ -252,9 +222,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.fidelizar-cliente.md"
       }
@@ -267,9 +235,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada antes de receber o primeiro cliente.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.preparar-loja.md"
       }
@@ -282,9 +248,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: o pagamento é recebido e reconhecido pela operação.",
-      "areas": [
-        "area.financeiro"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.receber-pagamento.md"
       }
@@ -297,9 +261,7 @@
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
       "definition": "Transformação necessária: a posse do produto passa para o cliente certo — por entrega, retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.",
-      "areas": [
-        "area.operacoes"
-      ],
+      "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.transferir-posse-ao-cliente.md"
       }

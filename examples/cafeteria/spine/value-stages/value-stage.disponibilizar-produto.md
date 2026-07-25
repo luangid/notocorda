@@ -4,8 +4,6 @@ type: spine
 spine_kind: value-stage
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.operacoes|Operações]]"
 ---
 
 # Disponibilizar produto

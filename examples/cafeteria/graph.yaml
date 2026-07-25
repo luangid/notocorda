@@ -1,8 +1,8 @@
-# Gerado por compiler/graph_to_yaml.py — NÃO EDITAR.
+# Gerado por build_graph.py — NÃO EDITAR (panorama para IA, CONTRATO §2.7).
 atlas:
   aviso: Projeção derivada para leitura por IA — nunca editar; propor mudanças nos Markdown de autoria.
   schema_version: '0.2'
-  gerado_em: '2026-07-24T20:24:21.384792Z'
+  gerado_em: '2026-07-25T19:20:26.130642Z'
   commit: null
 cenarios:
 - id: scenario.loja-inteligente
@@ -42,8 +42,6 @@ espinha:
     confianca: hypothesis
     definicao: Capacidade de saber quem compra, o que prefere e com que frequência volta.
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - enables → value-stage.fidelizar-cliente (Fidelizar cliente)
     recebe:
@@ -57,8 +55,6 @@ espinha:
     definicao: Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa
       preparando.
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - enables → value-stage.disponibilizar-produto (Disponibilizar produto)
     recebe:
@@ -73,8 +69,6 @@ espinha:
     definicao: Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação
       precisa deles.
     cenarios: todos
-    areas:
-    - area.suprimentos (Suprimentos)
     relacoes:
     - enables → value-stage.abastecer-operacao (Abastecer operação)
     recebe:
@@ -91,8 +85,6 @@ espinha:
     definicao: Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que
       seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - enables → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
     recebe:
@@ -105,8 +97,6 @@ espinha:
     confianca: hypothesis
     definicao: Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.
     cenarios: todos
-    areas:
-    - area.pessoas (Pessoas)
     relacoes:
     - enables → value-stage.preparar-loja (Preparar loja)
     recebe:
@@ -122,8 +112,6 @@ espinha:
     definicao: Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega
       ou resolução.
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - enables → value-stage.coletar-pedido (Coletar pedido)
     recebe:
@@ -138,8 +126,6 @@ espinha:
     definicao: Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais
       contas devidas — no valor e no prazo acordados.
     cenarios: todos
-    areas:
-    - area.financeiro (Financeiro)
     recebe:
     - Caixa sempre conciliado (invariant.caixa-sempre-conciliado) —constrains→ este
     - Pagar fornecedor (obligation.pagar-fornecedor) —requires→ este
@@ -154,8 +140,6 @@ espinha:
       no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada
       de honrar compromissos financeiros.
     cenarios: todos
-    areas:
-    - area.financeiro (Financeiro)
     relacoes:
     - enables → value-stage.receber-pagamento (Receber pagamento)
     recebe:
@@ -169,8 +153,6 @@ espinha:
     confianca: hypothesis
     definicao: 'Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.'
     cenarios: todos
-    areas:
-    - area.suprimentos (Suprimentos)
     relacoes:
     - creates → obligation.pagar-fornecedor (Pagar fornecedor)
     recebe:
@@ -185,8 +167,6 @@ espinha:
     definicao: 'O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa
       batem com o que foi registrado.'
     cenarios: todos
-    areas:
-    - area.financeiro (Financeiro)
     relacoes:
     - constrains → capability.processar-pagamentos (Processar pagamentos)
     - constrains → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
@@ -202,8 +182,6 @@ espinha:
     definicao: 'O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de
       uma bebida.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - constrains → capability.garantir-consistencia-da-bebida (Garantir consistência da bebida)
     recebe:
@@ -229,8 +207,6 @@ espinha:
     definicao: 'O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega
       de insumos.'
     cenarios: todos
-    areas:
-    - area.financeiro (Financeiro)
     relacoes:
     - requires → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
     recebe:
@@ -244,8 +220,6 @@ espinha:
     definicao: 'Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias
       para operar o dia.'
     cenarios: todos
-    areas:
-    - area.suprimentos (Suprimentos)
     relacoes:
     - advances → value-stage.preparar-loja (Preparar loja)
     - requires → event.entrega-de-insumos-aceita (Entrega de insumos aceita)
@@ -261,8 +235,6 @@ espinha:
     definicao: 'Transformação necessária: a intenção de compra do cliente é capturada de forma acionável,
       qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - advances → value-stage.disponibilizar-produto (Disponibilizar produto)
     recebe:
@@ -280,8 +252,6 @@ espinha:
       — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado
       de terceiros para revenda.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - advances → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
     recebe:
@@ -295,8 +265,6 @@ espinha:
     confianca: hypothesis
     definicao: 'Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - advances → objective.servir-cafe-rentavel (Servir café com qualidade e margem)
     recebe:
@@ -312,8 +280,6 @@ espinha:
     definicao: 'Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada
       antes de receber o primeiro cliente.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - advances → value-stage.coletar-pedido (Coletar pedido)
     recebe:
@@ -329,8 +295,6 @@ espinha:
     confianca: hypothesis
     definicao: 'Transformação necessária: o pagamento é recebido e reconhecido pela operação.'
     cenarios: todos
-    areas:
-    - area.financeiro (Financeiro)
     relacoes:
     - advances → value-stage.fidelizar-cliente (Fidelizar cliente)
     recebe:
@@ -347,8 +311,6 @@ espinha:
     definicao: 'Transformação necessária: a posse do produto passa para o cliente certo — por entrega,
       retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.'
     cenarios: todos
-    areas:
-    - area.operacoes (Operações)
     relacoes:
     - advances → value-stage.receber-pagamento (Receber pagamento)
     recebe:

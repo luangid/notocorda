@@ -530,7 +530,10 @@ Não devem ser exibidas setas ligando cada caixa à área.
 
 ### 7.3 Pertencimento por wikilink
 
-Os documentos declaram suas áreas no frontmatter:
+Os documentos declaram suas áreas no frontmatter — **exceto elementos da
+espinha**: a espinha é independente do organograma (§9.1), por isso `areas`
+é proibido em `type: spine` e o pertencimento da espinha é sempre derivado
+das realizações que a realizam em cada cenário.
 
 ```yaml
 areas:
@@ -660,7 +663,8 @@ O Atlas deve identificar:
 Um elemento da espinha:
 
 - deve ser independente do sistema atual;
-- deve ser independente do organograma atual;
+- deve ser independente do organograma atual (por isso não declara `areas`
+  no frontmatter — o pertencimento é derivado das realizações, §7.3);
 - não deve descrever um procedimento específico;
 - deve permanecer relevante em mais de uma realização possível;
 - deve ligar-se a objetivos, etapas, capacidades, invariantes, eventos ou obrigações.
@@ -738,8 +742,6 @@ id: capability.gerenciar-pedidos
 type: spine
 spine_kind: capability
 status: active
-areas:
-  - "[[area.operacoes|Operações]]"
 scenarios:
   - "[[scenario.espinha-dorsal|Espinha dorsal]]"
 ---
@@ -908,6 +910,16 @@ parte do registro e acompanhamento do pedido é suportada digitalmente.
 ```
 
 ## 11. Estrutura recomendada
+
+> **Nota (2026-07-25):** desde a separação ferramenta × conteúdo, `schemas/`
+> e `compiler/` moram no repositório da FERRAMENTA (notocorda), não no vault:
+> um vault de conteúdo contém apenas as pastas de autoria (`spine/`,
+> `realizations/`, `systems/`, `data/`, `evidence/`, `problems/`, `areas/`,
+> `scenarios/`, `views/`) e `generated/` (derivado). Um vault sem `schemas/`
+> própria usa automaticamente a da ferramenta. `atlas.config.yaml`,
+> `relation.schema.json` e `manifest.schema.json` ainda NÃO existem —
+> são planejados (manifest: federação, §12). A árvore abaixo descreve o
+> desenho completo original, para referência.
 
 ```text
 atlas/

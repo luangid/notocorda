@@ -4,8 +4,6 @@ type: spine
 spine_kind: capability
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.operacoes|Operações]]"
 ---
 
 # Garantir transferência correta

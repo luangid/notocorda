@@ -19,10 +19,22 @@ Uso: python3 compiler/build_graph.py [raiz-do-vault] [saida] [pasta-schemas]
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import yaml
+
+
+def _normalizar_datas(valor):
+    """PyYAML lê `2026-07-24` como datetime.date; o contrato fala JSON, onde
+    data é string ISO. Normaliza para o schema não acusar falso positivo."""
+    if isinstance(valor, (date, datetime)):
+        return valor.isoformat()
+    if isinstance(valor, dict):
+        return {k: _normalizar_datas(v) for k, v in valor.items()}
+    if isinstance(valor, list):
+        return [_normalizar_datas(v) for v in valor]
+    return valor
 
 BOX_DIRS = ["spine", "realizations", "systems", "data", "evidence", "problems"]
 CONTEXT_DIRS = ["areas", "scenarios", "views"]
@@ -39,7 +51,7 @@ def parse_doc(path: Path):
     m = RE_FRONT.match(text)
     if not m:
         raise ValueError(f"{path}: frontmatter ausente")
-    front = yaml.safe_load(m.group(1))
+    front = _normalizar_datas(yaml.safe_load(m.group(1)))
     body = text[m.end():]
     h1 = RE_H1.search(body)
     sections = {}
@@ -50,7 +62,10 @@ def parse_doc(path: Path):
         "front": front,
         "name": h1.group(1).strip() if h1 else front.get("id", path.stem),
         "definition": " ".join(sections.get("Definição", "").split()) or None,
-        "relations": RE_REL.findall(sections.get("Relações", "")),
+        # Relações vivem no corpo INTEIRO, não só em "## Relações" — o próprio
+        # template do Guia (§5.6) coloca `evidences`/`derived-from` sob
+        # "## Evidências". Restringir a uma seção descartava arestas em silêncio.
+        "relations": RE_REL.findall(body),
         "path": path,
     }
 
@@ -65,6 +80,17 @@ def construir(root: Path, schemas_dir: Path) -> dict:
     registries = yaml.safe_load((schemas_dir / "registries.yaml").read_text(encoding="utf-8"))
     relation_types = registries["relation_types"]
 
+    # O contrato de autoria (document.schema.json) é validado AQUI, doc a doc —
+    # sem isto, todas as condicionais por tipo (spine sem areas, baseline só em
+    # scenario, campos de view, enums de status) ficavam sem guardião (§14.1).
+    doc_validator = None
+    try:
+        import jsonschema
+        doc_schema = json.loads((schemas_dir / "document.schema.json").read_text(encoding="utf-8"))
+        doc_validator = jsonschema.Draft202012Validator(doc_schema)
+    except ImportError:
+        pass
+
     docs, errors, warnings, gaps = [], [], [], []
     for d in BOX_DIRS + CONTEXT_DIRS:
         for path in sorted((root / d).rglob("*.md")) if (root / d).exists() else []:
@@ -76,11 +102,50 @@ def construir(root: Path, schemas_dir: Path) -> dict:
             if doc["front"].get("type") == "spine" and not doc["front"].get("spine_kind"):
                 errors.append({"code": "spine-without-kind",
                                "message": f"{fid}: type spine sem spine_kind", "node": fid})
+            if doc["front"].get("type") == "spine" and doc["front"].get("areas"):
+                errors.append({"code": "spine-with-areas",
+                               "message": f"{fid}: espinha não declara áreas — é independente do "
+                                          "organograma (Guia §9.1); pertencimento é derivado das "
+                                          "realizações", "node": fid})
+            if doc["front"].get("type") not in BOX_TYPES | {"area", "scenario", "view"}:
+                errors.append({"code": "unknown-type",
+                               "message": f"{fid}: type '{doc['front'].get('type')}' não existe "
+                                          "no contrato (§4)", "node": fid})
+            if doc_validator is not None:
+                for err in doc_validator.iter_errors(doc["front"]):
+                    errors.append({"code": "frontmatter-invalid",
+                                   "message": f"{fid}: {'/'.join(str(p) for p in err.path) or 'frontmatter'}"
+                                              f" — {err.message[:120]}", "node": fid})
             docs.append(doc)
 
     ids = {d["front"]["id"]: d for d in docs}
     if len(ids) != len(docs):
         errors.append({"code": "duplicate-id", "message": "IDs duplicados na vault"})
+
+    # Referências do frontmatter também precisam resolver (§14.1: "área
+    # inexistente" e "cenário inexistente" são erros) — antes só as arestas
+    # do corpo eram conferidas, e nuvem/baseline podiam apontar para fantasma.
+    def _ref(fid, valor, tipo_esperado, campo):
+        rid = wl_id(valor)
+        alvo = ids.get(rid)
+        if alvo is None:
+            errors.append({"code": "unresolved-reference",
+                           "message": f"{fid}: {campo} → {rid} não existe", "node": fid})
+        elif alvo["front"].get("type") != tipo_esperado:
+            errors.append({"code": "reference-wrong-type",
+                           "message": f"{fid}: {campo} → {rid} não é {tipo_esperado}", "node": fid})
+
+    for d in docs:
+        f, fid = d["front"], d["front"]["id"]
+        for a in f.get("areas", []):
+            _ref(fid, a, "area", "areas")
+        for s in f.get("scenarios", []):
+            _ref(fid, s, "scenario", "scenarios")
+        if f.get("baseline"):
+            _ref(fid, f["baseline"], "scenario", "baseline")
+        for sl in f.get("scenario_levels", []):
+            if sl.get("scenario"):
+                _ref(fid, sl["scenario"], "scenario", "scenario_levels")
 
     nodes, edges, areas, scenarios, views = [], [], [], [], []
     for d in docs:
@@ -100,6 +165,19 @@ def construir(root: Path, schemas_dir: Path) -> dict:
                 warnings.append({"code": "related-to",
                                  "message": f"{fid} → {target}: relação provisória, refinar", "node": fid})
             tgt = ids[target]["front"]
+            # Área e view nunca participam de aresta (§7.2: pertencimento é
+            # propriedade, não seta; antipadrão "setas para áreas").
+            if ftype in ("area", "view") or tgt["type"] in ("area", "view"):
+                errors.append({"code": "edge-with-area",
+                               "message": f"{fid} —{rel}→ {target}: área/view não entra em aresta "
+                                          "(§7.2) — pertencimento se declara no frontmatter",
+                               "node": fid})
+                continue
+            if rel == "replaces" and ftype != tgt["type"]:
+                warnings.append({"code": "replaces-cross-family",
+                                 "message": f"{fid} —replaces→ {target}: substituição entre famílias "
+                                            f"diferentes ({ftype} → {tgt['type']}; Guia §6.4 pede a "
+                                            "mesma família)", "node": fid})
             for side, doc_type, kind, allowed in (
                     ("origem", ftype, spine_kind, spec.get("from") or []),
                     ("destino", tgt["type"], tgt.get("spine_kind"), spec.get("to") or [])):

@@ -4,8 +4,6 @@ type: spine
 spine_kind: invariant
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.financeiro|Financeiro]]"
 ---
 
 # Caixa sempre conciliado

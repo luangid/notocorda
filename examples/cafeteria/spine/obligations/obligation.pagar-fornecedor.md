@@ -4,8 +4,6 @@ type: spine
 spine_kind: obligation
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.financeiro|Financeiro]]"
 ---
 
 # Pagar fornecedor

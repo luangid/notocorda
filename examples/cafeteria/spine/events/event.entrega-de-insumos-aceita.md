@@ -4,8 +4,6 @@ type: spine
 spine_kind: event
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.suprimentos|Suprimentos]]"
 ---
 
 # Entrega de insumos aceita

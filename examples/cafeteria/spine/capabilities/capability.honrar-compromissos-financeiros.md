@@ -4,8 +4,6 @@ type: spine
 spine_kind: capability
 status: active
 confidence: hypothesis
-areas:
-  - "[[area.financeiro|Financeiro]]"
 ---
 
 # Honrar compromissos financeiros

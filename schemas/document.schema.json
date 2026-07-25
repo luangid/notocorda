@@ -30,7 +30,7 @@
     "areas": {
       "type": "array",
       "items": { "$ref": "#/$defs/wikilink" },
-      "description": "Pertencimento a áreas por wikilink: \"[[area.operacoes|Operações]]\". Vira propriedade derivada, não aresta."
+      "description": "Pertencimento a áreas por wikilink: \"[[area.operacoes|Operações]]\". Vira propriedade derivada, não aresta. PROIBIDO em type: spine — a espinha é independente do organograma (Guia §9.1); o pertencimento da espinha é derivado das realizações que a realizam."
     },
     "scenarios": {
       "type": "array",
@@ -93,7 +93,10 @@
   "allOf": [
     {
       "if": { "properties": { "type": { "const": "spine" } } },
-      "then": { "required": ["spine_kind"] },
+      "then": {
+        "required": ["spine_kind"],
+        "properties": { "areas": false }
+      },
       "else": { "properties": { "spine_kind": false } }
     },
     {
