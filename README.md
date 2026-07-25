@@ -1,7 +1,12 @@
 # Notocorda
 
-**Mapeamento dirigido por uma espinha dorsal de etapas lógicas independentes
-da operação, com fluxo de valor e diagrama de dependência funcional.**
+**A operação da sua organização com dupla interface: pessoas navegam um mapa
+vivo; agentes de IA leem o mesmo grafo em YAML e o consultam por lentes de
+terminal. Uma fonte em Markdown versionado — duas leituras de primeira
+classe, humano e LLM analisando a mesma verdade em paralelo.**
+
+Mapeamento dirigido por uma espinha dorsal de etapas lógicas independentes
+da operação, com fluxo de valor e diagrama de dependência funcional.
 
 ![O As-Is de uma cafeteria: espinha de valor no eixo, capacidades penduradas
 nela, realizações reunidas em nuvens por área e problemas em vermelho, no
@@ -31,12 +36,21 @@ O nome vem da biologia: a **notocorda** é o eixo flexível que organiza o
 corpo dos cordados *antes* de existir esqueleto. A vértebra vem depois; o
 eixo vem primeiro.
 
-## A tese: documentação executável
+## A tese: documentação executável, com dupla interface
 
-Quem escreve, escreve **prosa em Markdown**. Quem lê, lê um **mapa**. Agentes
-de IA leem a **mesma verdade em YAML**. Uma fonte, três leituras — e a fonte
-é texto versionado em git, não um desenho que alguém precisa lembrar de
-atualizar.
+Quem escreve, escreve **prosa em Markdown**. A partir daí a mesma verdade
+atende dois públicos, em pé de igualdade:
+
+- **Pessoas** abrem o **mapa vivo** — camadas, nuvens de área, cenários
+  As-Is/To-Be comparáveis, foco e vizinhança, tudo navegável.
+- **Agentes de IA** leem o **`graph.yaml`** (o grafo por extenso, relações
+  escritas como frases) e consultam as **lentes de terminal** — os mesmos
+  recursos de "visualização" do mapa, sem pixels: recortes com semântica.
+
+É essa simetria que dá à Notocorda a sua mágica: humano e LLM analisam a
+**mesma operação em paralelo**, cada um na interface em que enxerga melhor —
+e quando discordam, discordam apontando para o mesmo nó. A fonte é texto
+versionado em git, não um desenho que alguém precisa lembrar de atualizar.
 
 Isto não é promessa: é o que o repositório faz. O comando abaixo reconstrói
 o `graph.json` da cafeteria a partir dos Markdown de autoria, e o resultado é
@@ -82,10 +96,77 @@ python3 -m venv --system-site-packages .venv   # o venv precisa enxergá-las
 Outros usos:
 
 ```bash
-./notocorda --listar           # que mapas existem por perto
+./notocorda --listar           # a estante (★) e o que existe por perto (·)
 ./notocorda ../meu-vault       # a PASTA da documentação — compila e abre
+./notocorda --esquecer NOME    # tira um mapa da estante
 ./notocorda --web 8137         # só serve, sem janela nativa
 ```
+
+## As lentes de consulta (a interface dos agentes)
+
+O humano navega o mapa; um agente de IA consulta **lentes** — subcomandos
+que devolvem recortes do grafo em YAML, no mesmo vocabulário do `graph.yaml`.
+Nada de desenho: recortes com semântica.
+
+```bash
+./notocorda check ../meu-vault                 # saúde: erros/avisos/lacunas (exit 1 se houver erro)
+./notocorda resumo ../meu-vault                # briefing executivo: espinha, cenários, áreas, problemas
+./notocorda view ../meu-vault --nivel 0        # o seletor de nível/camadas/áreas da prancha
+./notocorda view ../meu-vault --cenario scenario.as-is --sem-tipo evidence --sem-area area.financeiro
+./notocorda focus ../meu-vault <id> --raio 2   # o clique numa caixa: vizinhança até N saltos
+./notocorda impacto ../meu-vault <id>          # se esta caixa parar, o que para junto? (--reverso inverte)
+```
+
+`check` sempre recompila e serve de gate (pre-commit, CI). `impacto` segue
+`requires`/`uses`/`enables`/`supports`/`realizes`/`advances` transitivamente,
+em ondas de distância — análise de impacto clássica. Pergunte à cafeteria o
+que acontece se a maquininha de cartão parar:
+
+```yaml
+$ ./notocorda impacto examples/cafeteria/graph.json system.pos-balcao
+alvo: system.pos-balcao (POS do balcão)
+pergunta: se esta caixa parar, o que para junto?
+alcance_total: 10
+ondas:
+- distancia: 1
+  caixas:
+  - realization.pagamento-na-maquininha (Pagamento na maquininha) · via …supports→…
+  - realization.pedido-no-balcao (Pedido no balcão) · via …supports→…
+- distancia: 2
+  caixas:
+  - capability.gerenciar-pedidos (Gerenciar pedidos) · via …realizes→…
+  - capability.processar-pagamentos (Processar pagamentos) · via …realizes→…
+- distancia: 3
+  caixas:
+  - value-stage.coletar-pedido (Coletar pedido) · via …enables→…
+  - value-stage.receber-pagamento (Receber pagamento) · via …enables→…
+# …e a cascata segue até o objetivo: Servir café com qualidade e margem.
+```
+
+Uma maquininha que trava vira, cinco ondas depois, o objetivo do negócio
+ameaçado — com o caminho inteiro citável, aresta por aresta. As lentes
+aceitam a pasta do vault (recompila se estiver velho) ou um `graph.json`
+direto (usa como está). Código em `compiler/consulta.py`.
+
+## As skills (o método, executável por agentes)
+
+Além das lentes, o repositório traz em `.claude/skills/` os **rituais do
+método** como skills de agente — quem abrir este repositório com o Claude
+Code (ou compatível) as recebe prontas. A divisão de trabalho: **a lente
+calcula, a skill julga**.
+
+| Skill | O que faz |
+|---|---|
+| `escrever` | Cria caixas no contrato: decide o tipo (teste da espinha §9.1), gera frontmatter + relações no corpo, valida com `check`. |
+| `revisar` | Review adversarial de um lote: fidelidade à fonte, confidence honesta, tipo certo — parecer classificado, nada corrigido em silêncio. |
+| `entrevistar` | O ciclo de mapeamento As-Is: roteiro mirado nas lacunas → transcrição vira evidência + caixas candidatas → devolução em dias. |
+| `lacunas` | 7 detectores de conservação — o que existe no mundo e não está no mapa (capacidade sem cobertura, obrigação sem quitação, dado órfão…). |
+| `revisao-nuclear` | A auditoria sistêmica completa do Guia §17: 20 passos, 9 artefatos, patches propostos — nunca aplicados silenciosamente. |
+
+As skills são genéricas — valem para qualquer vault. Uma organização que
+adote o método pode sobrepô-las com versões próprias (fontes, gates de
+governança, sistemas internos) no `.claude/skills/` do seu workspace, sem
+tocar nestas.
 
 ## Como está organizado
 
@@ -116,8 +197,10 @@ visualizador em camadas, com As-Is, To-Be e comparação entre cenários.
 
 O que ainda não existe: edição gráfica gravando de volta nos arquivos de
 autoria (hoje o mapa é leitura e views), diff visual completo entre cenários
-e a camada de IA descrita no §16 do Guia. O visualizador tem arestas soltas —
-é um v0 de verdade, não um produto.
+e o restante da camada de IA do §16 do Guia (as lentes de consulta são o
+primeiro passo dela; faltam as lentes derivadas — matriz capacidade × área,
+fronteiras entre áreas, dossiê de problema — e o servidor MCP). O
+visualizador tem arestas soltas — é um v0 de verdade, não um produto.
 
 ## Licença
 
