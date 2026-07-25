@@ -76,17 +76,18 @@ class NotocordaApp {
       palette: opts.palette || 'carta',
       levelIdx: Math.max(0, this.levels.findIndex(l => l.n === 0)),
       readingMode: 'completo', depth: 2,
-      areaPanel: false, activeArea: null, showClouds: true,
+      areaPanel: false, activeArea: null, showClouds: true, areaHidden: {},
       compare: false,
       editorOpen: false, editorNode: null, editorText: '',
       selected: null, search: '', edgeSentence: null,
       vis: { essencial:true, realizacao:true, sistemas:false, dados:false, evidencias:false, problemas:true },
       revealed: {},
       openGroups: { espinha:true, capacidades:true, atual:true, tobe:false, sistemas:true, dados:false, evidencias:false, problemas:true, areas:true },
-      density: 1, spineOp: 0.16, repulsao: 0.7, fluid: 0.5,
+      density: 1, spineOp: 0.4, repulsao: 0.7, fluid: 0.5,
+      cloudOp: 1, curOp: 1, edgeOp: 1, edgeW: 1, gridOp: 1,
       indexCollapsed: false, inspectorCollapsed: false,
       spacing: 1, multi: new Set(), marquee: null, tool: 'pan', visual: 'prancha',
-      fineOpen: false,
+      fineOpen: false, aparenciaOpen: true,
       trilha: [], cardPos: {},   // notas abertas, em ordem de leitura, e onde foram largadas
       abrirOpen: false,
     };
@@ -330,8 +331,8 @@ class NotocordaApp {
   // das nuvens se apertam quando elas se sobrepõem, e nem sempre o nome cabe
   // na folha. Vale também para a célula cujo rótulo o zoom já engoliu.
   agendarDica(m, n) {
-    const area = n ? null : this.areaAtScreen(m.x, m.y);
-    const chave = n ? 'n:' + n.id : (area ? 'a:' + area : null);
+    const areas = n ? [] : this.areasAtScreen(m.x, m.y);
+    const chave = n ? 'n:' + n.id : (areas.length ? 'a:' + areas.join('|') : null);
     if (chave === this._dicaChave) { if (this._dicaAberta) this.moverDica(m); return; }
     this._dicaChave = chave;
     this.esconderDica();
@@ -342,8 +343,13 @@ class NotocordaApp {
       const fs = (n.fsMundo || 0) * (this.state.density || 1) * this.cam.z;
       if (fs < 8.5) html = `<b>${this.esc(n.name)}</b><div class="tip-meta">${this.esc(C.TYPE_LABELS[n.type] || n.type)}</div>`;
     } else {
-      const item = this.areaList().find(a => a.name === area);
-      html = `<b>${this.esc(area)}</b><div class="tip-meta">área · ${item ? item.count : 0} células</div>`;
+      // nuvens EMPILHADAS: a dica nomeia todas as áreas sob o mouse, da mais
+      // específica para a mais ampla — é o mesmo empilhamento do desenho.
+      const lista = this.areaList();
+      html = areas.map(a => {
+        const item = lista.find(x => x.name === a);
+        return `<b>${this.esc(a)}</b><div class="tip-meta">área · ${item ? item.count : 0} células</div>`;
+      }).join('');
     }
     if (!html) return;
     this._dicaT = setTimeout(() => {
@@ -423,7 +429,9 @@ class NotocordaApp {
     this.nodes.forEach(n => {
       if (n.layer !== 'essential' && lv.scenId && n.scenarios !== 'all' && n.scenarios.includes(lv.scenId)) n.yoff = -dir * 40;
     });
-    this.assentar(45); this.fitView();
+    // NÃO reenquadra: a câmera fica onde está para a espinha não saltar na
+    // troca de nível (o "enquadrar" continua disponível no rodapé/atalho).
+    this.assentar(45);
   }
   // clicar numa célula começa uma trilha nova
   selectNode(id) { this.hoverId = id; this.setState({ selected: id, edgeSentence: null, trilha: [id] }); }
@@ -501,6 +509,10 @@ class NotocordaApp {
     // atrapalha a leitura. Aqui só se integra durante o assentamento.
     if (this._integrar) vis.forEach(a => {
       if (a.fixed) return;
+      // Espinha e essencial são OUTRO NÍVEL: ficam cravados no lugar de origem
+      // (Sugiyama), não entram na física. Assim a espinha não salta ao trocar
+      // de nível — só as células de periferia (que mudam por cenário) acomodam.
+      if (a.type === 'value-stage' || a.layer === 'essential') { a.x = a.homeX; a.y = a.homeY; a.vx = 0; a.vy = 0; return; }
       const cell = a.layer !== 'essential' && a.type !== 'value-stage';
       let fx = (a.tx - a.x) * (cell ? 0.06 : 0.1), fy = (a.ty - a.y) * (cell ? 0.12 : 0.14);
       const aw = (a._bw || this.nodeR(a) * 2) / 2, ah = (a._bh || this.nodeR(a) * 2) / 2;
@@ -521,7 +533,9 @@ class NotocordaApp {
     const spineOp = this.state.spineOp, cmp = this._cmp, mode = this.state.readingMode;
     const spineFocus = this.curLevel().spineOnly;
     const focusId = this.state.selected || this.hoverId; let neigh = null, path = null;
-    if (focusId) { neigh = this.neighSetDepth(focusId, this.state.selected ? this.state.depth : 1); if (this.state.selected) path = this.pathToSpine(this.state.selected); }
+    // O raio do painel (1–3) vale para o realce de HOVER também — antes o
+    // hover ficava cravado em 1 e o seletor parecia não responder.
+    if (focusId) { neigh = this.neighSetDepth(focusId, this.state.depth); if (this.state.selected) path = this.pathToSpine(this.state.selected); }
     this._path = path;
     this.nodes.forEach(n => {
       const g = this.groupOf(n); const ghost = cmp && cmp.removed.has(n.id) && !this.inScenario(n);
@@ -529,10 +543,16 @@ class NotocordaApp {
       if (mode === 'vizinhanca' && this.state.selected && neigh) shown = shown && neigh.has(n.id);
       let t;
       if (ghost) t = 0.3; else if (!shown) t = 0;
-      else if (n.layer === 'essential') t = spineFocus ? 1 : Math.max(0.4, spineOp);
+      else if (n.layer === 'essential') t = spineFocus ? 1 : spineOp;
       else t = 0.96;
-      if (neigh && shown && mode !== 'vizinhanca') { const on = path ? path.nodesP.has(n.id) : neigh.has(n.id); t = on ? 1 : t * 0.16; }
+      // No modo vizinhança COM seleção o recorte já aconteceu acima (shown);
+      // sem seleção, o realce de hover continua valendo — senão o modo parece
+      // morto até a primeira célula ser escolhida.
+      if (neigh && shown && (mode !== 'vizinhanca' || !this.state.selected)) { const on = path ? path.nodesP.has(n.id) : neigh.has(n.id); t = on ? 1 : t * 0.16; }
       if (this.state.activeArea && shown && !focusId) t = this.areasOf(n).includes(this.state.activeArea) ? 1 : t * 0.2;
+      // opacidade da "camada atual" (as realizações operacionais): controle de
+      // experimentação do painel Aparência — não mexe na espinha nem no fundo.
+      if (n.layer === 'operational' && shown) t *= this.state.curOp;
       n.talpha = t; n.alpha += (t - n.alpha) * Math.min(1, dt * 8); n.yoff += (0 - n.yoff) * Math.min(1, dt * 7);
     });
   }
@@ -598,7 +618,8 @@ class NotocordaApp {
       if (inc) { col = p.sinal; lw += 0.8; al = Math.min(1, al + 0.45); dash = dash || [7, 6]; }
       // elo da trilha aberta: o caminho que as notas percorreram fica firme
       if (tr.pares.has(e.source + '>' + e.target)) { col = p.sinal; lw = Math.max(lw, 2.6); al = 1; dash = null; }
-      ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = lw;
+      // painel Aparência: opacidade e grossura das arestas para experimentação
+      ctx.globalAlpha = al * this.state.edgeOp; ctx.strokeStyle = col; ctx.lineWidth = lw * this.state.edgeW;
       if (dash) { ctx.setLineDash(dash); ctx.lineDashOffset = -((this._t) * 26) % 1000; } else ctx.lineDashOffset = 0;
       // Fechamento de ciclo (ex.: "avaliar e evoluir" devolve ao planejamento):
       // arco por baixo do eixo, para não atravessar as etapas intermediárias.
@@ -635,6 +656,7 @@ class NotocordaApp {
     });
     const order = this.nodes.slice().sort((n1, n2) => (n1.type === 'value-stage' ? 1 : 0) - (n2.type === 'value-stage' ? 1 : 0));
     order.forEach(n => { if (n.alpha < 0.02) return; this.drawNode(ctx, p, n, z); });
+    this.drawAreaLabels(p);
     if (this._marquee) {
       const a = this.w2s(this._marquee.x0, this._marquee.y0), b = this.w2s(this._marquee.x1, this._marquee.y1);
       ctx.save();
@@ -795,22 +817,23 @@ class NotocordaApp {
   // todas as linhas, o que ruidava a folha inteira).
   drawGrid(p) {
     const ctx = this.ctx, z = this.cam.z, step = 48 * z; if (step < 10) return;
+    const go = this.state.gridOp; if (go <= 0.01) return;   // painel Aparência
     const MAIOR = 4;
     const i0x = Math.floor((this.cam.x - this.W / 2 / z) / 48), i1x = Math.ceil((this.cam.x + this.W / 2 / z) / 48);
     const i0y = Math.floor((this.cam.y - this.H / 2 / z) / 48), i1y = Math.ceil((this.cam.y + this.H / 2 / z) / 48);
     ctx.save(); ctx.lineWidth = 1;
     for (let i = i0x; i <= i1x; i++) {
       const maior = i % MAIOR === 0, x = Math.round(this.w2s(i * 48, 0).x) + 0.5;
-      ctx.strokeStyle = maior ? p.traco : p.grid; ctx.globalAlpha = maior ? 0.34 : 0.55;
+      ctx.strokeStyle = maior ? p.traco : p.grid; ctx.globalAlpha = (maior ? 0.34 : 0.55) * go;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.H); ctx.stroke();
     }
     for (let j = i0y; j <= i1y; j++) {
       const maior = j % MAIOR === 0, y = Math.round(this.w2s(0, j * 48).y) + 0.5;
-      ctx.strokeStyle = maior ? p.traco : p.grid; ctx.globalAlpha = maior ? 0.34 : 0.55;
+      ctx.strokeStyle = maior ? p.traco : p.grid; ctx.globalAlpha = (maior ? 0.34 : 0.55) * go;
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.W, y); ctx.stroke();
     }
     if (step > 13) {
-      ctx.fillStyle = p.tinta; ctx.globalAlpha = 0.3; ctx.font = "400 8.5px 'IBM Plex Mono',monospace";
+      ctx.fillStyle = p.tinta; ctx.globalAlpha = 0.3 * go; ctx.font = "400 8.5px 'IBM Plex Mono',monospace";
       ctx.textBaseline = 'top'; ctx.textAlign = 'left';
       for (let i = i0x; i <= i1x; i++) if (i % MAIOR === 0) ctx.fillText(i * 48, this.w2s(i * 48, 0).x + 3, 3);
       // a coluna de ordenadas começa abaixo da faixa de abscissas, senão os
@@ -834,13 +857,6 @@ class NotocordaApp {
     bands.forEach(([lbl, wy]) => { const s = this.w2s(this.cam.x, wy); ctx.fillText(lbl, this.W - 14, s.y); });
     ctx.restore();
   }
-  smoothHull(ctx, h) {
-    const n = h.length; if (n < 2) { ctx.beginPath(); return; }
-    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-    ctx.beginPath(); const m0 = mid(h[n - 1], h[0]); ctx.moveTo(m0[0], m0[1]);
-    for (let i = 0; i < n; i++) { const cur = h[i], nx = mid(h[i], h[(i + 1) % n]); ctx.quadraticCurveTo(cur[0], cur[1], nx[0], nx[1]); }
-    ctx.closePath();
-  }
   // `lw` maior serve para desenhar o mesmo ícone como halo, por baixo
   drawAreaIcon(ctx, area, x, y, s, col, lw) {
     ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = lw || 1.4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -857,38 +873,321 @@ class NotocordaApp {
     else { ctx.beginPath(); ctx.arc(x, y, s * 0.85, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 7); ctx.fill(); }
     ctx.restore();
   }
-  drawClouds(p) {
-    this._areaHulls = [];
-    if (!this.state.showClouds && !this.state.activeArea) return;
-    const ctx = this.ctx, z = this.cam.z;
-    const groups = {}, rotulos = [];
-    this.visibleNodes().forEach(n => {
-      if (n.alpha < 0.05 || n.layer === 'essential') return;
-      this.areasOf(n).forEach(a => { (groups[a] = groups[a] || []).push(n); });
-    });
-    ctx.save();
-    Object.keys(groups).forEach(area => {
-      const ns = groups[area]; if (!ns.length) return;
-      const active = this.state.activeArea === area, dim = this.state.activeArea && !active;
-      const pts = [];
-      ns.forEach(n => {
-        const s = this.w2s(n.x, n.y + n.yoff + (n._boff || 0));
-        const hw = ((n._bw || this.nodeR(n) * 2) / 2) * z + 30, hh = ((n._bh || this.nodeR(n) * 2) / 2) * z + 26;
-        pts.push([s.x - hw, s.y - hh], [s.x + hw, s.y - hh], [s.x + hw, s.y + hh], [s.x - hw, s.y + hh]);
+  // Camada fora de tela para montar as nuvens: precisamos do `destination-out`
+  // (que morde os nós estranhos) sem apagar o graticule que já está na prancha.
+  _ensureCloudLayer() {
+    if (!this._cloudEl) { this._cloudEl = document.createElement('canvas'); this._cloudCtx = this._cloudEl.getContext('2d'); }
+    const el = this._cloudEl;
+    if (el.width !== this.canvas.width || el.height !== this.canvas.height) { el.width = this.canvas.width; el.height = this.canvas.height; }
+    return { el, ctx: this._cloudCtx };
+  }
+  // Retângulos de tela de cada célula visível, e por área: quem é membro e
+  // quem é ESTRANHO (não pertence e cai por cima). O estranho vira mordida.
+  _cloudGeom() {
+    const z = this.cam.z;
+    // Membros pelo ALVO (talpha), não pelo alpha animado: na troca de nível os
+    // nós entram um a um conforme o alpha sobe passando de 0.05, e isso fazia o
+    // casco crescer e o rótulo saltar a cada quadro (a "vibração"). Com o alvo,
+    // a forma da nuvem já nasce final e fica firme enquanto os nós aparecem.
+    const vis = this.visibleNodes().filter(n => (n.talpha == null ? n.alpha : n.talpha) > 0.05);
+    // Posição SEM yoff/_boff: são animações de entrada, e a nuvem que as segue
+    // treme as quinas a cada quadro na troca de nível — mesma regra do talpha,
+    // a forma nasce final e os nós deslizam para dentro dela.
+    const rect = n => {
+      const s = this.w2s(n.x, n.y);
+      return { id: n.id, cx: s.x, cy: s.y,
+        hw: ((n._bw || this.nodeR(n) * 2) / 2) * z, hh: ((n._bh || this.nodeR(n) * 2) / 2) * z };
+    };
+    const rects = vis.map(rect);
+    // A espinha (value-stage) E o modelo essencial (capacidades, invariantes)
+    // NUNCA são mordidos: são OUTRO NÍVEL, não moram numa área — a aguada da
+    // nuvem passa por baixo deles sem deixar buraco. Só os nós de PERIFERIA que
+    // pertencem a OUTRA área (e cruzam esta) é que abrem o vão/dente.
+    const semMordida = new Set(vis.filter(n => n.layer === 'essential' || n.type === 'value-stage').map(n => n.id));
+    const areas = {};
+    // Agrupa por TODAS as áreas do nó (areasOf): um nó que pertence a duas
+    // áreas entra nas duas nuvens, então os cascos se sobrepõem e o nó
+    // compartilhado cai na INTERSEÇÃO — a sobreposição é o sinal de "pertence
+    // às duas". A espinha e o essencial não entram em nuvem; o essencial vira
+    // mordida onde cruzar, mas a espinha (value-stage) passa por baixo intacta.
+    vis.forEach((n, i) => {
+      // A espinha (value-stage) e o modelo essencial NÃO entram nas nuvens —
+      // eles vivem no eixo, não numa área. Ficam de fora e viram mordida onde
+      // um casco passar por cima, para a espinha continuar legível. (Mesma
+      // convenção da física em step(): área é coisa de realização/periferia.)
+      if (n.layer === 'essential' || n.type === 'value-stage') return;
+      this.areasOf(n).forEach(a => {
+        (areas[a] = areas[a] || { members: [], ids: new Set(), aSum: 0 });
+        areas[a].members.push(rects[i]); areas[a].ids.add(n.id);
+        // opacidade da nuvem acompanha o alpha animado dos membros: a FORMA já
+        // nasce final (talpha), mas a cor entra em fade junto com as caixas.
+        areas[a].aSum += Math.min(1, n.alpha / 0.9);
       });
-      const hull = C.convexHull(pts); if (hull.length < 3) return;
-      this._areaHulls.push({ area, hull });
-      const tint = this.areaTint(area);
-      const fillA = active ? 0.2 : (dim ? 0.04 : 0.12), strokeA = active ? 0.6 : (dim ? 0.12 : 0.34);
-      this.smoothHull(ctx, hull); ctx.globalAlpha = fillA; ctx.fillStyle = tint; ctx.fill();
-      ctx.globalAlpha = strokeA; ctx.lineWidth = active ? 1.6 : 1; ctx.strokeStyle = tint;
-      ctx.setLineDash(active ? [] : [7, 6]); this.smoothHull(ctx, hull); ctx.stroke(); ctx.setLineDash([]);
-      let cx = 0, cy = 1e9; hull.forEach(pt => { cx += pt[0]; cy = Math.min(cy, pt[1]); }); cx /= hull.length;
-      rotulos.push({ area, tint, cx, y: cy - 8, n: ns.length, active, dim });
     });
-    // Rótulos por último e sem se atropelar: nuvens que se sobrepõem punham os
-    // nomes um por cima do outro. Colocação gulosa, como num mapa impresso —
-    // quem colide sobe até achar folga (e o nome nunca fica ilegível).
+    // Cada área vira um ou mais COMPONENTES ESPACIAIS (enclaves, como numa
+    // carta): membros próximos formam uma bolha; um membro que mora longe —
+    // tipicamente o nó de duas áreas, desenhado na coluna da outra — ganha uma
+    // bolha satélite da mesma cor em volta de si, em vez de esticar o casco da
+    // área através do mapa (era isso que criava as nuvens atravessadas).
+    // A fusão é ANISOTRÓPICA, casada com o layout de colunas: estreita na
+    // horizontal (MENOR que o vão entre colunas, GAP_COL = GAP_H·3.2 ≈ 147·
+    // espaço — colunas vizinhas nunca fundem) e generosa na vertical (MAIOR
+    // que o salto entre as faixas por tipo dentro da coluna — realizações e
+    // problemas da mesma coluna ficam na mesma bolha, como na prancha).
+    const espaco = this.state.spacing || 1;
+    const MERGE_X = 120 * espaco * z, MERGE_Y = 760 * espaco * z;
+    Object.keys(areas).forEach(a => {
+      const A = areas[a];
+      A.count = A.members.length;
+      A.fade = Math.max(0, Math.min(1, A.aSum / Math.max(1, A.count)));
+      A.clusters = this._spatialClusters(A.members, MERGE_X, MERGE_Y).map(members => {
+        let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+        members.forEach(r => { x0 = Math.min(x0, r.cx - r.hw); y0 = Math.min(y0, r.cy - r.hh); x1 = Math.max(x1, r.cx + r.hw); y1 = Math.max(y1, r.cy + r.hh); });
+        const pad = 70;
+        // estranho = quem não é da ÁREA (outro enclave dela não morde o irmão)
+        const foreign = rects.filter(r => !A.ids.has(r.id) && !semMordida.has(r.id)
+          && r.cx + r.hw > x0 - pad && r.cx - r.hw < x1 + pad && r.cy + r.hh > y0 - pad && r.cy - r.hh < y1 + pad);
+        return { members, foreign };
+      });
+    });
+    return areas;
+  }
+  // Union-find por proximidade: dois retângulos caem no mesmo componente se a
+  // folga borda-a-borda entre eles é menor que o limiar em CADA eixo. O que
+  // sobra separado vira enclave — bolha própria, mesma cor, sem ponte
+  // atravessando o vazio.
+  _spatialClusters(members, mergeX, mergeY) {
+    const n = members.length, pai = Array.from({ length: n }, (_, i) => i);
+    const find = i => { while (pai[i] !== i) { pai[i] = pai[pai[i]]; i = pai[i]; } return i; };
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+      const a = members[i], b = members[j];
+      const dx = Math.max(0, Math.abs(a.cx - b.cx) - a.hw - b.hw);
+      const dy = Math.max(0, Math.abs(a.cy - b.cy) - a.hh - b.hh);
+      if (dx < mergeX && dy < mergeY) pai[find(i)] = find(j);
+    }
+    const por = {};
+    members.forEach((m, i) => { const r = find(i); (por[r] = por[r] || []).push(m); });
+    return Object.values(por);
+  }
+  // Contorno ORGÂNICO de um enclave: varre o cluster em bandas horizontais e
+  // abraça, banda a banda, só o que existe ali — cada linha de células com a
+  // sua largura, em vez do casco convexo que fazia toda coluna virar uma
+  // pílula uniforme. Nos vãos verticais (entre a faixa de realizações e o
+  // problema lá embaixo) a nuvem ESTRANGULA numa cintura, como um istmo numa
+  // carta; as pontas fecham em calota elíptica. O polígono sai denso e cru —
+  // quem arredonda é o Chaikin do _dentBoundary, na sequência.
+  _outlineOrganico(members, infl) {
+    const PASSO = 14, CAP = 26;
+    let y0 = 1e9, y1 = -1e9;
+    members.forEach(m => { y0 = Math.min(y0, m.cy - m.hh); y1 = Math.max(y1, m.cy + m.hh); });
+    y0 -= infl; y1 += infl;
+    const bandas = [];
+    const nB = Math.max(2, Math.ceil((y1 - y0) / PASSO));
+    for (let i = 0; i <= nB; i++) {
+      const y = y0 + (y1 - y0) * (i / nB);
+      let l = 1e9, r = -1e9;
+      members.forEach(m => {
+        if (y < m.cy - m.hh - infl || y > m.cy + m.hh + infl) return;
+        l = Math.min(l, m.cx - m.hw - infl); r = Math.max(r, m.cx + m.hw + infl);
+      });
+      bandas.push({ y, l, r, oca: r < l });
+    }
+    // vão entre linhas: interpola as bordas e aperta o meio — quanto maior o
+    // vão, mais funda a cintura (sem nunca fechar a passagem de todo)
+    for (let i = 0; i < bandas.length; i++) {
+      if (!bandas[i].oca) continue;
+      let p = i - 1; while (p >= 0 && bandas[p].oca) p--;
+      let q = i; while (q < bandas.length && bandas[q].oca) q++;
+      if (p < 0 || q >= bandas.length) { const v = bandas[p < 0 ? q : p]; bandas[i].l = v.l; bandas[i].r = v.r; continue; }
+      const bp = bandas[p], bq = bandas[q], t = (i - p) / (q - p);
+      const l = bp.l + (bq.l - bp.l) * t, r = bp.r + (bq.r - bp.r) * t;
+      const gap = bq.y - bp.y;
+      const pinch = Math.min(0.42, Math.max(0, (gap - 3 * PASSO) / 480) * 0.6);
+      const cx = (l + r) / 2, w = Math.max(24, ((r - l) / 2) * (1 - pinch * Math.sin(Math.PI * t)));
+      bandas[i].l = cx - w; bandas[i].r = cx + w;
+    }
+    // degrau entre linhas de larguras muito diferentes: relaxa as bordas para
+    // FORA (média com as vizinhas, nunca por cima de uma caixa) — a transição
+    // vira rampa em vez de quina
+    for (let it = 0; it < 2; it++) {
+      for (let i = 1; i < bandas.length - 1; i++) {
+        bandas[i].l = Math.min(bandas[i].l, (bandas[i - 1].l + bandas[i + 1].l) / 2);
+        bandas[i].r = Math.max(bandas[i].r, (bandas[i - 1].r + bandas[i + 1].r) / 2);
+      }
+    }
+    // calotas elípticas nas pontas, para o topo e o pé fecharem redondos
+    const calota = (base, dir) => {
+      const out = [];
+      for (let j = 1; j <= 3; j++) {
+        const d = (CAP * j) / 3;
+        const f = Math.sqrt(Math.max(0, 1 - (d / CAP) * (d / CAP)));
+        const cx = (base.l + base.r) / 2, w = ((base.r - base.l) / 2) * (0.4 + 0.6 * f);
+        out.push({ y: base.y + dir * d, l: cx - w, r: cx + w });
+      }
+      return out;
+    };
+    const todas = calota(bandas[0], -1).reverse().concat(bandas, calota(bandas[bandas.length - 1], 1));
+    const poly = [];
+    todas.forEach(b => poly.push([b.r, b.y]));
+    for (let i = todas.length - 1; i >= 0; i--) poly.push([todas[i].l, todas[i].y]);
+    return poly;
+  }
+  // subdivide um polígono em pontos ~a cada `passo` px, para o contorno poder
+  // ser amassado ponto a ponto (o casco cru tem poucos vértices).
+  _densify(hull, passo) {
+    const out = [], n = hull.length;
+    for (let i = 0; i < n; i++) {
+      const a = hull[i], b = hull[(i + 1) % n];
+      const seg = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / passo));
+      for (let s = 0; s < seg; s++) { const t = s / seg; out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); }
+    }
+    return out;
+  }
+  // Suavização de Chaikin (corta cantos): cada passada troca cada vértice por
+  // dois pontos a 1/4 e 3/4 da aresta, arredondando dentes e o contorno todo.
+  _chaikin(pts, iters) {
+    let p = pts;
+    for (let it = 0; it < iters; it++) {
+      const q = [], n = p.length;
+      for (let i = 0; i < n; i++) {
+        const a = p[i], b = p[(i + 1) % n];
+        q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+        q.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+      }
+      p = q;
+    }
+    return p;
+  }
+  // empurra para dentro (na direção do centro) cada ponto que caiu num obstáculo
+  _projectOut(bnd, obst, ctr) {
+    for (let k = 0; k < bnd.length; k++) {
+      let px = bnd[k][0], py = bnd[k][1];
+      for (const o of obst) {
+        if (px <= o.minx || px >= o.maxx || py <= o.miny || py >= o.maxy) continue;
+        let dx = ctr[0] - px, dy = ctr[1] - py; const dl = Math.hypot(dx, dy);
+        if (dl < 1e-3) continue; dx /= dl; dy /= dl;
+        let t = Infinity;
+        if (dx > 1e-6) t = Math.min(t, (o.maxx - px) / dx); else if (dx < -1e-6) t = Math.min(t, (o.minx - px) / dx);
+        if (dy > 1e-6) t = Math.min(t, (o.maxy - py) / dy); else if (dy < -1e-6) t = Math.min(t, (o.miny - py) / dy);
+        if (t !== Infinity && t > 0) { px += dx * t; py += dy * t; }
+      }
+      bnd[k] = [px, py];
+    }
+    return bnd;
+  }
+  // "Amassa" o contorno: cada nó estranho que toca a borda empurra os pontos do
+  // contorno PARA DENTRO (na direção do centro da área) até saírem do retângulo
+  // do intruso — um dente côncavo que abraça o nó por fora. Densifica, empurra,
+  // suaviza (Chaikin) e empurra de novo, para o dente ficar REDONDO em vez de
+  // poligonal. Como é o mesmo contorno usado no preenchimento E no pontilhado,
+  // os dois recuam juntos. Sem estranhos, só arredonda o casco todo.
+  _dentBoundary(hull, foreign, pad, ctr) {
+    if (!foreign.length) return this._chaikin(hull, 2);
+    const obst = foreign.map(r => ({ minx: r.cx - r.hw - pad, maxx: r.cx + r.hw + pad, miny: r.cy - r.hh - pad, maxy: r.cy + r.hh + pad }));
+    let bnd = this._densify(hull, 9);
+    bnd = this._projectOut(bnd, obst, ctr);
+    bnd = this._chaikin(bnd, 2);
+    bnd = this._projectOut(bnd, obst, ctr);   // reafirma a folga depois de suavizar
+    return bnd;
+  }
+  // contorno suave de um casco (mesma curva do casco antigo, uma nuvem só)
+  smoothHull(ctx, h) {
+    const n = h.length; if (n < 2) { ctx.beginPath(); return; }
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    ctx.beginPath(); const m0 = mid(h[n - 1], h[0]); ctx.moveTo(m0[0], m0[1]);
+    for (let i = 0; i < n; i++) { const cur = h[i], nx = mid(h[i], h[(i + 1) % n]); ctx.quadraticCurveTo(cur[0], cur[1], nx[0], nx[1]); }
+    ctx.closePath();
+  }
+  drawClouds(p) {
+    this._areaShapes = []; this._rotulos = [];
+    if (!this.state.showClouds && !this.state.activeArea) return;
+    const geom = this._cloudGeom();
+    const areasK = Object.keys(geom); if (!areasK.length) return;
+    const ctx = this.ctx, dpr = this.dpr, z = this.cam.z;
+    const off = this._ensureCloudLayer(), octx = off.ctx;
+    // Uma área = um ou mais ENCLAVES (bolhas por componente espacial, vindas
+    // de _cloudGeom): cada bolha é o casco coeso dos membros PRÓXIMOS entre si,
+    // AMASSADO onde um nó estranho toca a borda (dente côncavo). O nó que mora
+    // longe — coluna de outra área — ganha bolha satélite da mesma cor, e a
+    // sobreposição dela com a nuvem hospedeira é o sinal de pertencimento
+    // duplo. O rótulo vai só no enclave maior, com a contagem da área inteira.
+    // INFL = raio de PERTENCIMENTO (quanto a nuvem estende além da caixa do
+    // membro). MORDE = raio de AFASTAMENTO (quanto ela recua de um intruso).
+    // Afastamento é de propósito MAIOR que pertencimento, para sobrar um vão de
+    // papel entre onde acaba a área da célula e onde começa a área vizinha.
+    const INFL_X = 18, MORDE = 26 + 6 * z;
+    const rotulos = [];
+    areasK.forEach(area => {
+      // área desligada no menu de nuvens não desenha (a em foco sempre aparece)
+      if (this.state.areaHidden[area] && this.state.activeArea !== area) return;
+      const A = geom[area];
+      const active = this.state.activeArea === area, dim = this.state.activeArea && !active;
+      const fade = (A.fade == null ? 1 : A.fade) * this.state.cloudOp;
+      const principal = A.clusters.reduce((m, c) => (c.members.length > m.members.length ? c : m), A.clusters[0]);
+      A.clusters.forEach(cl => {
+        let mcx = 0, mcy = 0;
+        cl.members.forEach(r => { mcx += r.cx; mcy += r.cy; });
+        mcx /= cl.members.length; mcy /= cl.members.length;
+        const hull0 = this._outlineOrganico(cl.members, INFL_X);
+        if (hull0.length < 3) return;
+        // amassa o contorno em volta dos estranhos que tocam a borda
+        const hull = this._dentBoundary(hull0, cl.foreign, MORDE, [mcx, mcy]);
+        // estranhos que sobraram DENTRO do contorno amassado (intrusos no miolo)
+        // ainda viram buraco; os de borda já saíram pelo dente.
+        const dentro = cl.foreign.filter(r => C.pointInPoly(r.cx, r.cy, hull));
+        // corpo na camada de fora: enche o contorno, fura só o miolo, colore
+        octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, off.el.width, off.el.height);
+        octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        octx.globalCompositeOperation = 'source-over'; octx.fillStyle = '#fff';
+        this.smoothHull(octx, hull); octx.fill();
+        octx.globalCompositeOperation = 'destination-out';
+        dentro.forEach(r => { this.roundRect(octx, r.cx - r.hw - MORDE, r.cy - r.hh - MORDE, (r.hw + MORDE) * 2, (r.hh + MORDE) * 2, 18); octx.fill(); });
+        octx.globalCompositeOperation = 'source-in';
+        octx.setTransform(1, 0, 0, 1, 0, 0);
+        octx.fillStyle = this.areaTint(area); octx.fillRect(0, 0, off.el.width, off.el.height);
+        octx.globalCompositeOperation = 'source-over';
+        // Cada nuvem está no seu lugar agora, então a cor pode voltar a preencher
+        // sem encardir — e a borda tracejada fecha a área como numa carta.
+        const fillA = (active ? 0.24 : (dim ? 0.04 : 0.13)) * fade;
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = fillA; ctx.drawImage(off.el, 0, 0); ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = (active ? 0.8 : (dim ? 0.16 : 0.5)) * fade;
+        ctx.strokeStyle = this.areaTintaRotulo(area); ctx.lineWidth = active ? 1.8 : 1.2;
+        ctx.setLineDash(active ? [] : [8, 5]); this.smoothHull(ctx, hull); ctx.stroke(); ctx.setLineDash([]);
+        ctx.restore();
+        // Estranho ENCRAVADO no miolo (totalmente dentro de uma área que não é a
+        // dele): além do buraco, um anel tracejado na cor da área fecha o vão como
+        // um enclave numa carta — deixa claro que a célula não pertence ali.
+        if (dentro.length) {
+          ctx.save();
+          ctx.globalAlpha = (active ? 0.7 : (dim ? 0.14 : 0.42)) * fade;
+          ctx.strokeStyle = this.areaTintaRotulo(area); ctx.lineWidth = 1.1;
+          ctx.setLineDash([5, 4]);
+          dentro.forEach(r => { this.roundRect(ctx, r.cx - r.hw - MORDE, r.cy - r.hh - MORDE, (r.hw + MORDE) * 2, (r.hh + MORDE) * 2, 16); ctx.stroke(); });
+          ctx.setLineDash([]); ctx.restore();
+        }
+        this._areaShapes.push({ area, hull, foreign: dentro, count: A.count });
+        if (cl === principal) {
+          let cx = 0, cy = 1e9; hull.forEach(pt => { cx += pt[0]; cy = Math.min(cy, pt[1]); }); cx /= hull.length;
+          rotulos.push({ area, tint: this.areaTint(area), cx, y: cy - 8, n: A.count, active, dim, fade });
+        }
+      });
+    });
+    // Os rótulos NÃO são desenhados aqui: as nuvens ficam no fundo (a aguada),
+    // mas o nome precisa ir por cima das arestas e dos nós — senão a formiga
+    // marchante das ligações tracejadas passa por cima do texto e ele "pisca".
+    // Guardamos a colocação e `drawAreaLabels` os pinta no fim do quadro.
+    this._rotulos = rotulos;
+  }
+  // Rótulos das áreas, desenhados por ÚLTIMO (acima das arestas e dos nós) para
+  // não serem apagados pela animação das ligações. Colocação gulosa, como num
+  // mapa impresso: nuvens sobrepostas empilhariam os nomes, então quem colide
+  // sobe até achar folga — e o nome nunca fica ilegível.
+  drawAreaLabels(p) {
+    const rotulos = this._rotulos; if (!rotulos || !rotulos.length) return;
+    const ctx = this.ctx;
+    ctx.save();
     ctx.font = "italic 600 13px 'Fraunces',Georgia,serif"; ctx.textBaseline = 'bottom';
     const ir = 6, gp = 7, ALT = 17;
     rotulos.forEach(r => { r.txt = r.area + ' · ' + r.n; r.w = ir * 2 + gp + ctx.measureText(r.txt).width; });
@@ -904,13 +1203,14 @@ class NotocordaApp {
       // Halo na cor do papel por baixo do nome — o mesmo recurso que uma carta
       // usa para o topônimo continuar legível sobre relevo, água ou malha.
       const tinta = this.areaTintaRotulo(r.area);
+      const fade = r.fade == null ? 1 : r.fade;
       const sx = r.cx - r.w / 2, tx = sx + ir * 2 + gp;
-      ctx.globalAlpha = r.dim ? 0.3 : 0.85;
+      ctx.globalAlpha = (r.dim ? 0.3 : 0.85) * fade;
       ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
       ctx.strokeStyle = p.papel; ctx.textAlign = 'left';
       ctx.strokeText(r.txt, tx, r.y);
       this.drawAreaIcon(ctx, r.area, sx + ir, r.y - 6, ir, p.papel, 3.6);
-      ctx.globalAlpha = r.active ? 1 : (r.dim ? 0.45 : 0.95);
+      ctx.globalAlpha = (r.active ? 1 : (r.dim ? 0.45 : 0.95)) * fade;
       ctx.fillStyle = tinta;
       this.drawAreaIcon(ctx, r.area, sx + ir, r.y - 6, ir, tinta);
       ctx.fillText(r.txt, tx, r.y);
@@ -918,11 +1218,23 @@ class NotocordaApp {
     ctx.globalAlpha = 1;
     ctx.restore();
   }
-  areaAtScreen(sx, sy) {
-    if (!this._areaHulls) return null; let best = null, ba = 1e18;
-    this._areaHulls.forEach(h => { if (C.pointInPoly(sx, sy, h.hull)) { const a = C.polyArea(h.hull); if (a < ba) { ba = a; best = h.area; } } });
-    return best;
+  // Todas as áreas cujo casco cobre o ponto — a PILHA de nuvens sob o mouse —
+  // sem contar quem está em cima de uma mordida (nó estranho). Ordena da mais
+  // específica (menos membros) para a mais ampla: a primeira é a "dona" do
+  // clique, e a dica nomeia a pilha inteira.
+  areasAtScreen(sx, sy) {
+    if (!this._areaShapes) return [];
+    const perto = (r, pad) => Math.abs(sx - r.cx) <= r.hw + pad && Math.abs(sy - r.cy) <= r.hh + pad;
+    const pilha = {};
+    this._areaShapes.forEach(A => {
+      if (pilha[A.area] != null) return;
+      if (!C.pointInPoly(sx, sy, A.hull)) return;
+      if (A.foreign.some(r => perto(r, 6))) return;
+      pilha[A.area] = A.count;
+    });
+    return Object.keys(pilha).sort((a, b) => pilha[a] - pilha[b] || a.localeCompare(b));
   }
+  areaAtScreen(sx, sy) { return this.areasAtScreen(sx, sy)[0] || null; }
   drawMini() {
     const ctx = this.mini.getContext('2d'); const r = this.mini.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1;
     if (!r.width) return;
@@ -1092,7 +1404,7 @@ class NotocordaApp {
       this.nodes.forEach(n => { if (n.layer === 'essential') { n.x = n.homeX; n.y = n.homeY; } });
       this.assentar(40); this.renderUI();
     });
-    ['density', 'spineOp', 'repulsao'].forEach(k => {
+    ['density', 'spineOp', 'repulsao', 'cloudOp', 'curOp', 'edgeOp', 'edgeW', 'gridOp'].forEach(k => {
       const el = this.$('rng-' + k); if (el) el.addEventListener('input', e => this.setState({ [k]: parseFloat(e.target.value) }));
     });
     // navegar clicando no mapa de situação (antes era um onclick no HTML)
@@ -1126,10 +1438,30 @@ class NotocordaApp {
       case 'set-depth': this.setState({ depth: parseInt(d.depth, 10) }); break;
       case 'toggle-compare': this.setState({ compare: !st.compare }); break;
       case 'toggle-fine': this.setState({ fineOpen: !st.fineOpen }); break;
+      case 'toggle-aparencia': this.setState({ aparenciaOpen: !st.aparenciaOpen }); break;
+      case 'reset-aparencia': {
+        this.setState({ cloudOp: 1, curOp: 1, spineOp: 0.4, edgeOp: 1, edgeW: 1, gridOp: 1 });
+        ['cloudOp:1', 'curOp:1', 'spineOp:0.4', 'edgeOp:1', 'edgeW:1', 'gridOp:1'].forEach(kv => {
+          const [k, v] = kv.split(':'); const el = this.$('rng-' + k); if (el) el.value = v;
+        });
+        break;
+      }
       case 'toggle-abrir': this.setState({ abrirOpen: !st.abrirOpen }); if (this.state.abrirOpen) this.listarGrafos(); break;
       case 'abrir-grafo': this.trocarGrafo({ url: '../' + d.caminho, org: d.nome }); break;
       case 'escolher-arquivo': this.escolherArquivo(); break;
       case 'toggle-area-panel': this.setState({ areaPanel: !st.areaPanel }); break;
+      case 'toggle-area-cloud': {
+        // se estava tudo ligado e o mestre é showClouds, garante o mestre on
+        const h = { ...st.areaHidden, [d.area]: !st.areaHidden[d.area] };
+        this.setState({ areaHidden: h, showClouds: true });
+        break;
+      }
+      case 'toggle-clouds-all': {
+        const areas = this.areaList();
+        const todasOn = st.showClouds && areas.every(a => !st.areaHidden[a.name]);
+        this.setState({ showClouds: true, areaHidden: todasOn ? Object.fromEntries(areas.map(a => [a.name, true])) : {} });
+        break;
+      }
       case 'select-area': this.setState({ areaPanel: true, activeArea: st.activeArea === d.area ? null : d.area }); break;
       case 'clear-selection': this.clearSelection(); break;
       case 'clear-edge': this.setState({ edgeSentence: null }); break;
@@ -1219,9 +1551,14 @@ class NotocordaApp {
             <span class="card-chip"><span class="st-dot" style="background:${this.statusCor(n.status)}"></span> ${esc(n.status)}</span>
             <span class="card-chip">${esc(C.CONFIDENCE_LABELS[n.confidence] || n.confidence || 'sem confiança')}</span>
             <span class="card-chip">${n.relations.length} saída · ${entradas.length} entrada</span>
-            ${n.areaNames && n.areaNames.length ? `<span class="card-chip hidro" style="font-size:11px">${esc(n.areaNames.join(' · '))}</span>` : ''}
           </div>
           <div style="padding:0 14px;">
+            ${n.areaNames && n.areaNames.length && n.layer !== 'essential' && n.type !== 'value-stage' ? `<div class="card-sec">Áreas</div>
+            <div style="margin-bottom:12px; display:flex; flex-direction:column; gap:5px;">
+              ${n.areaNames.map(a => `<span style="display:flex; align-items:center; gap:8px; font-size:12.5px;">
+                <span style="width:10px; height:10px; border-radius:6px; flex:none; background:${this.areaTint(a, true)}"></span>
+                <span class="hidro">${esc(a)}</span></span>`).join('')}
+            </div>` : ''}
             <div class="card-sec">Relações de saída</div>
             <div style="margin-bottom:12px;">${saidas}</div>
             <div class="card-sec">Relações de entrada</div>
@@ -1325,6 +1662,23 @@ class NotocordaApp {
         <span class="mono-count">${gcount[g] || 0}</span><span class="conv-tog">${st.vis[g] ? '●' : '○'}</span>
       </button>`).join('');
 
+    // nuvens de área: uma linha por área, mesmo interruptor das camadas. A
+    // nuvem "ligada" é a que aparece na prancha; desligar tira só a mancha.
+    const areasN = this.areaList();
+    this.$('insp-clouds-bloco').style.display = areasN.length ? 'block' : 'none';
+    if (areasN.length) {
+      const on = a => st.showClouds && !st.areaHidden[a];
+      this.$('insp-clouds').innerHTML = areasN.map(a => `
+        <button class="conv-row ${on(a.name) ? '' : 'off'}" data-act="toggle-area-cloud" data-area="${esc(a.name)}"
+          aria-pressed="${on(a.name)}" title="${on(a.name) ? 'Ocultar' : 'Mostrar'} a nuvem de ${a.name.toLowerCase()}">
+          <span style="width:11px; height:11px; border-radius:6px; flex:none; background:${this.areaTint(a.name, true)}; opacity:${on(a.name) ? 1 : .35}"></span>
+          <span class="conv-nome hidro">${esc(a.name)}</span>
+          <span class="mono-count">${a.count}</span><span class="conv-tog">${on(a.name) ? '●' : '○'}</span>
+        </button>`).join('');
+      const todasOn = st.showClouds && areasN.every(a => !st.areaHidden[a.name]);
+      const tog = this.$('clouds-all-tog'); if (tog) tog.textContent = todasOn ? 'todas ●' : 'todas ○';
+    }
+
     // barra de níveis (To-Be no topo)
     let lb = '';
     this.levels.slice().reverse().forEach(l => {
@@ -1376,6 +1730,14 @@ class NotocordaApp {
       `<button class="seg ${st.readingMode === k ? 'sel' : ''}" data-act="set-mode" data-mode="${k}">${l}</button>`).join('');
     this.$('depth-btns').innerHTML = [1, 2, 3].map(d =>
       `<button class="seg ${st.depth === d ? 'sel' : ''}" data-act="set-depth" data-depth="${d}">${d}</button>`).join('');
+    // O recorte de vizinhança precisa de uma célula escolhida — sem ela o modo
+    // não teria o que recortar, e o painel explica em vez de parecer quebrado.
+    const hint = this.$('mode-hint');
+    if (hint) {
+      const semSel = st.readingMode === 'vizinhanca' && !st.selected;
+      hint.style.display = semSel ? 'block' : 'none';
+      if (semSel) hint.textContent = 'Clique numa célula: o mapa recorta só a vizinhança dela, no raio de passos escolhido (1–3).';
+    }
     const cmpAvail = lv.kind === 'to-be' && lv.baseline;
     this.$('compare-sec').style.display = cmpAvail ? 'block' : 'none';
     if (cmpAvail) {
@@ -1385,13 +1747,24 @@ class NotocordaApp {
     // ajustes finos: recolhidos por padrão, com o valor de cada régua à vista
     this.$('fine-body').style.display = st.fineOpen ? 'block' : 'none';
     this.$('fine-caret').style.transform = `rotate(${st.fineOpen ? 90 : 0}deg)`;
-    this.$('fine-hint').textContent = st.fineOpen ? '' : '4';
+    this.$('fine-hint').textContent = st.fineOpen ? '' : '3';
+    const fmt = v => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
     if (st.fineOpen) {
-      const fmt = v => (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
       this.$('val-spacing').textContent = fmt(st.spacing) + '×';
       this.$('val-density').textContent = fmt(st.density) + '×';
-      this.$('val-spineOp').textContent = Math.round(st.spineOp * 100) + '%';
       this.$('val-repulsao').textContent = fmt(st.repulsao);
+    }
+    // painel Aparência (sempre montado; controla só o desenho, não o dado)
+    this.$('aparencia-body').style.display = st.aparenciaOpen ? 'block' : 'none';
+    this.$('aparencia-caret').style.transform = `rotate(${st.aparenciaOpen ? 90 : 0}deg)`;
+    if (st.aparenciaOpen) {
+      const pct = v => Math.round(v * 100) + '%';
+      this.$('val-cloudOp').textContent = pct(st.cloudOp);
+      this.$('val-curOp').textContent = pct(st.curOp);
+      this.$('val-spineOp').textContent = pct(st.spineOp);
+      this.$('val-edgeOp').textContent = pct(st.edgeOp);
+      this.$('val-edgeW').textContent = fmt(st.edgeW) + '×';
+      this.$('val-gridOp').textContent = pct(st.gridOp);
     }
     this.mini = this.$('minimap');
 

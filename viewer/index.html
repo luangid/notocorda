@@ -335,10 +335,22 @@
             <div style="font-size:10.5px; color:var(--muted); line-height:1.5; margin-top:8px;">Sistemas, dados e evidências começam recolhidos — abra-os aqui ou por um nó.</div>
           </div>
 
+          <!-- nuvens de área: liga/desliga a mancha de cada área, uma a uma -->
+          <div id="insp-clouds-bloco" class="bloco">
+            <div class="convencoes">
+              <div class="box-hdr"><span>Nuvens de área</span>
+                <button id="clouds-all-tog" data-act="toggle-clouds-all" title="Ligar/desligar todas"
+                  style="border:none; background:transparent; cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.08em; color:var(--tinta); opacity:.7; padding:0;">todas</button></div>
+              <div id="insp-clouds"></div>
+            </div>
+            <div style="font-size:10.5px; color:var(--muted); line-height:1.5; margin-top:8px;">A mancha de cada área e sua divisa. Desligue as que estiverem atrapalhando a leitura.</div>
+          </div>
+
           <div class="bloco par">
             <div><div class="rotulo">Modo de leitura</div><div id="mode-btns" class="seg-box"></div></div>
             <div><div class="rotulo">Vizinhança</div><div id="depth-btns" class="seg-box"></div></div>
           </div>
+          <div id="mode-hint" style="display:none; font-size:10.5px; color:var(--muted); line-height:1.5; margin-top:6px;"></div>
 
           <div id="compare-sec" class="bloco" style="display:none;">
             <div class="rotulo">Comparação com o cenário-base</div>
@@ -356,15 +368,13 @@
           <div class="bloco">
             <button class="dobra" data-act="toggle-fine">
               <span class="caret" id="fine-caret">▸</span><span>Ajustes finos</span>
-              <span class="leaders"></span><span class="mono-count" id="fine-hint">4</span>
+              <span class="leaders"></span><span class="mono-count" id="fine-hint">3</span>
             </button>
             <div id="fine-body" style="display:none; margin-top:14px;">
               <div class="regua-linha"><span class="rotulo" style="margin:0;">Espaçamento entre células</span><span class="regua-val" id="val-spacing"></span></div>
               <input id="rng-spacing" type="range" min="0.6" max="2.4" step="0.1" value="1" class="atlas-range">
               <div class="regua-linha"><span class="rotulo" style="margin:0;">Densidade</span><span class="regua-val" id="val-density"></span></div>
               <input id="rng-density" type="range" min="0.7" max="1.6" step="0.1" value="1" class="atlas-range">
-              <div class="regua-linha"><span class="rotulo" style="margin:0;">Presença da espinha</span><span class="regua-val" id="val-spineOp"></span></div>
-              <input id="rng-spineOp" type="range" min="0.06" max="0.6" step="0.02" value="0.16" class="atlas-range">
               <div class="regua-linha"><span class="rotulo" style="margin:0;">Repulsão de área</span><span class="regua-val" id="val-repulsao"></span></div>
               <input id="rng-repulsao" type="range" min="0" max="2" step="0.1" value="0.7" class="atlas-range">
             </div>
@@ -373,6 +383,29 @@
           <div class="bloco">
             <div class="rotulo">Mapa de situação</div>
             <div class="inset"><canvas id="minimap"></canvas></div>
+          </div>
+
+          <!-- painel de experimentação: mexer na aparência sem tocar no dado -->
+          <div class="bloco">
+            <button class="dobra" data-act="toggle-aparencia">
+              <span class="caret" id="aparencia-caret" style="transform:rotate(90deg)">▸</span><span>Aparência</span>
+              <span class="leaders"></span><span class="mono-count">exp.</span>
+            </button>
+            <div id="aparencia-body" style="margin-top:14px;">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Opacidade das nuvens</span><span class="regua-val" id="val-cloudOp"></span></div>
+              <input id="rng-cloudOp" type="range" min="0" max="1" step="0.05" value="1" class="atlas-range">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Opacidade da camada atual</span><span class="regua-val" id="val-curOp"></span></div>
+              <input id="rng-curOp" type="range" min="0.1" max="1" step="0.05" value="1" class="atlas-range">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Presença da espinha</span><span class="regua-val" id="val-spineOp"></span></div>
+              <input id="rng-spineOp" type="range" min="0.06" max="1" step="0.02" value="0.4" class="atlas-range">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Opacidade das arestas</span><span class="regua-val" id="val-edgeOp"></span></div>
+              <input id="rng-edgeOp" type="range" min="0.1" max="1" step="0.05" value="1" class="atlas-range">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Grossura das arestas</span><span class="regua-val" id="val-edgeW"></span></div>
+              <input id="rng-edgeW" type="range" min="0.4" max="2.5" step="0.1" value="1" class="atlas-range">
+              <div class="regua-linha"><span class="rotulo" style="margin:0;">Opacidade do graticulado</span><span class="regua-val" id="val-gridOp"></span></div>
+              <input id="rng-gridOp" type="range" min="0" max="1" step="0.05" value="1" class="atlas-range">
+              <button data-act="reset-aparencia" class="hdr-btn" style="width:100%; height:30px; margin-top:12px; font-size:11.5px;">Restaurar padrões</button>
+            </div>
           </div>
 
           <div class="bloco" style="border-bottom:none;">
