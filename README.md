@@ -4,7 +4,8 @@
 da operação, com fluxo de valor e diagrama de dependência funcional.**
 
 ![O As-Is de uma cafeteria: espinha de valor no eixo, capacidades penduradas
-nela, realizações agrupadas por área e problemas em vermelho](docs/exemplo-cafeteria.png)
+nela, realizações reunidas em nuvens por área e problemas em vermelho, no
+sopé de cada nuvem](docs/exemplo-cafeteria.png)
 
 ## A ideia
 

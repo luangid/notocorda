@@ -30,6 +30,8 @@ def main() -> int:
     ap.add_argument("saida", help="arquivo PNG de saída")
     ap.add_argument("--nivel", type=int, default=None, help="nível do seletor a exibir")
     ap.add_argument("--espera", type=float, default=7.0, help="segundos até a física assentar")
+    ap.add_argument("--largura", type=int, default=1500, help="largura da janela")
+    ap.add_argument("--altura", type=int, default=950, help="altura da janela")
     args = ap.parse_args()
 
     try:
@@ -50,7 +52,7 @@ def main() -> int:
     if args.nivel is not None:
         url += f"&level={args.nivel}"
     janela = webview.create_window("Notocorda — captura", url, js_api=ad.PonteNotocorda(porta),
-                                   width=1500, height=950)
+                                   width=args.largura, height=args.altura)
     resultado = {"ok": False}
 
     def capturar():
@@ -61,7 +63,12 @@ def main() -> int:
             janela.evaluate_js("window.mapa.hoverId=null; window.mapa.clearSelection();")
             janela.evaluate_js("window.mapa.fitView()")
             time.sleep(1.5)
-            dados = janela.evaluate_js("window.mapa.canvas.toDataURL('image/png')")
+            # de novo, e agora sem deixar quadro nenhum entre limpar e fotografar:
+            # a janela pode ter passado sob o ponteiro enquanto o fit acontecia
+            dados = janela.evaluate_js(
+                "window.mapa.hoverId=null; window.mapa.clearSelection(); window.mapa.draw();"
+                "window.mapa.canvas.toDataURL('image/png')"
+            )
             png = base64.b64decode(dados.split(",", 1)[1])
             Path(args.saida).write_bytes(png)
             estado = janela.evaluate_js(
