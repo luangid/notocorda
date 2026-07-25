@@ -3,11 +3,11 @@
 **Mapeamento dirigido por uma espinha dorsal de etapas lógicas independentes
 da operação, com fluxo de valor e diagrama de dependência funcional.**
 
-Documentação operacional com **dupla interface**: pessoas navegam um mapa
-vivo; agentes de IA leem o mesmo grafo em YAML e o consultam por lentes de
-terminal. Uma fonte em Markdown versionado, duas leituras de primeira
-classe — análise humana e análise por LLM em paralelo, sobre a mesma
-verdade.
+Além da metodologia de mapeamento, a documentação operacional foi planejada
+para o **paralelismo entre a análise de pessoas e a de LLMs**: um
+visualizador (aplicativo de desktop ou página HTML) para a análise visual, e
+um conjunto de ferramentas de linha de comando que serve de interface para
+agentes de IA — os dois lendo o mesmo grafo derivado.
 
 ![O As-Is de uma cafeteria: espinha de valor no eixo, capacidades penduradas
 nela, realizações reunidas em nuvens por área e problemas em vermelho, no
@@ -37,21 +37,22 @@ O nome vem da biologia: a **notocorda** é o eixo flexível que organiza o
 corpo dos cordados *antes* de existir esqueleto. A vértebra vem depois; o
 eixo vem primeiro.
 
-## A tese: documentação executável, com dupla interface
+## A tese: documentação executável
 
-Quem escreve, escreve **prosa em Markdown**. A partir daí a mesma verdade
-atende dois públicos, em pé de igualdade:
+Quem escreve, escreve **prosa em Markdown**. A partir daí, a mesma fonte é
+servida em duas projeções:
 
-- **Pessoas** abrem o **mapa vivo** — camadas, nuvens de área, cenários
-  As-Is/To-Be comparáveis, foco e vizinhança, tudo navegável.
-- **Agentes de IA** leem o **`graph.yaml`** (o grafo por extenso, relações
-  escritas como frases) e consultam as **lentes de terminal** — os mesmos
-  recursos de "visualização" do mapa, sem pixels: recortes com semântica.
+- **Pessoas** abrem o mapa — camadas, nuvens de área, cenários As-Is/To-Be
+  comparáveis, foco e vizinhança.
+- **Agentes de IA** leem o `graph.yaml` (o grafo por extenso, com as
+  relações escritas como frases) e consultam as lentes de terminal —
+  operações análogas às do mapa, devolvendo recortes em vez de desenho.
 
-É essa simetria que dá à Notocorda a sua mágica: humano e LLM analisam a
-**mesma operação em paralelo**, cada um na interface em que enxerga melhor —
-e quando discordam, discordam apontando para o mesmo nó. A fonte é texto
-versionado em git, não um desenho que alguém precisa lembrar de atualizar.
+A intenção é que uma pessoa e um LLM possam analisar a mesma operação em
+paralelo, cada um pela interface que lhe é adequada — e que uma divergência
+entre os dois possa ser discutida apontando para o mesmo nó. A fonte é
+texto versionado em git, não um desenho que alguém precisa lembrar de
+atualizar.
 
 Isto não é promessa: é o que o repositório faz. O comando abaixo reconstrói
 o `graph.json` da cafeteria a partir dos Markdown de autoria, e o resultado é
@@ -105,9 +106,10 @@ Outros usos:
 
 ## As lentes de consulta (a interface dos agentes)
 
-O humano navega o mapa; um agente de IA consulta **lentes** — subcomandos
-que devolvem recortes do grafo em YAML, no mesmo vocabulário do `graph.yaml`.
-Nada de desenho: recortes com semântica.
+Enquanto uma pessoa navega o mapa, um agente de IA consulta **lentes** —
+subcomandos que devolvem recortes do grafo em YAML, no mesmo vocabulário do
+`graph.yaml`. As lentes não desenham nada: devolvem o recorte com a
+semântica preservada, que é o que um LLM consegue de fato usar.
 
 ```bash
 ./notocorda check ../meu-vault                 # saúde: erros/avisos/lacunas (exit 1 se houver erro)
@@ -144,10 +146,10 @@ ondas:
 # …e a cascata segue até o objetivo: Servir café com qualidade e margem.
 ```
 
-Uma maquininha que trava vira, cinco ondas depois, o objetivo do negócio
-ameaçado — com o caminho inteiro citável, aresta por aresta. As lentes
-aceitam a pasta do vault (recompila se estiver velho) ou um `graph.json`
-direto (usa como está). Código em `compiler/consulta.py`.
+No exemplo, a parada da maquininha alcança o objetivo do negócio em cinco
+ondas, com o caminho registrado aresta por aresta. As lentes aceitam a
+pasta do vault (recompila se estiver velho) ou um `graph.json` direto (usa
+como está). Código em `compiler/consulta.py`.
 
 ## As skills (o método, executável por agentes)
 
