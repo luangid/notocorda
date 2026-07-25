@@ -1,12 +1,13 @@
 # Notocorda
 
-**A operação da sua organização com dupla interface: pessoas navegam um mapa
-vivo; agentes de IA leem o mesmo grafo em YAML e o consultam por lentes de
-terminal. Uma fonte em Markdown versionado — duas leituras de primeira
-classe, humano e LLM analisando a mesma verdade em paralelo.**
+**Mapeamento dirigido por uma espinha dorsal de etapas lógicas independentes
+da operação, com fluxo de valor e diagrama de dependência funcional.**
 
-Mapeamento dirigido por uma espinha dorsal de etapas lógicas independentes
-da operação, com fluxo de valor e diagrama de dependência funcional.
+Documentação operacional com **dupla interface**: pessoas navegam um mapa
+vivo; agentes de IA leem o mesmo grafo em YAML e o consultam por lentes de
+terminal. Uma fonte em Markdown versionado, duas leituras de primeira
+classe — análise humana e análise por LLM em paralelo, sobre a mesma
+verdade.
 
 ![O As-Is de uma cafeteria: espinha de valor no eixo, capacidades penduradas
 nela, realizações reunidas em nuvens por área e problemas em vermelho, no
