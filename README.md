@@ -69,6 +69,13 @@ com as relações escritas por extenso e as lacunas que a validação encontrou.
 `compiler/auditar_yaml.py` confere que a projeção conserva tudo o que o mapa
 desenha — nada some no caminho, nada aparece do nada.
 
+O documento [Onde isto se encaixa: OKR, BSC e o padrão LLM
+Wiki](docs/okr-bsc-e-llm-wiki.md) situa o método entre os vizinhos: o grafo
+como substrato sob protocolos de direção como OKR e o Balanced Scorecard, e
+como instância — com contrato e governança — do padrão
+[LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+publicado por Andrej Karpathy.
+
 ## Rodar
 
 O caminho curto, sem instalar nada — o mapa é uma página:
@@ -194,16 +201,17 @@ derivado.
 
 ## Estado
 
-**v0, em construção.** O que já se sustenta: o formato, o compilador (com o
-ida-e-volta da cafeteria fechando exato), a validação contra o contrato e o
-visualizador em camadas, com As-Is, To-Be e comparação entre cenários.
+O núcleo está de pé e em uso: o formato, o compilador (com o ida-e-volta
+da cafeteria fechando exato), a validação contra o contrato, as lentes de
+consulta e o visualizador em camadas, com As-Is, To-Be e comparação entre
+cenários. O método segue evoluindo com o uso — o contrato é versionado
+justamente para isso.
 
 O que ainda não existe: edição gráfica gravando de volta nos arquivos de
 autoria (hoje o mapa é leitura e views), diff visual completo entre cenários
 e o restante da camada de IA do §16 do Guia (as lentes de consulta são o
 primeiro passo dela; faltam as lentes derivadas — matriz capacidade × área,
-fronteiras entre áreas, dossiê de problema — e o servidor MCP). O
-visualizador tem arestas soltas — é um v0 de verdade, não um produto.
+fronteiras entre áreas, dossiê de problema — e o servidor MCP).
 
 ## Licença
 

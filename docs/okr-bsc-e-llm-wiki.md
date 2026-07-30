@@ -79,9 +79,10 @@ que alguém digitou" — aqui a distinção é parte do contrato.
 
 ## O padrão LLM Wiki
 
-Em 2026, Andrej Karpathy publicou o
-[LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f):
-em vez de RAG sobre documentos crus, a LLM constrói e mantém um wiki
+Em abril de 2026, Andrej Karpathy publicou o
+[LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+— um "arquivo de ideia" em gist, feito para ser entregue a um agente que o
+instancie. A proposta: em vez de RAG sobre documentos crus, a LLM constrói e mantém um wiki
 persistente de Markdown interligado — fontes imutáveis embaixo, wiki
 mantido pela LLM no meio, um documento de schema que disciplina o
 agente por cima; três operações (ingest, query, lint). A tese
