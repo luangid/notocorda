@@ -1,6 +1,6 @@
 {
   "schema_version": "0.2",
-  "generated_at": "2026-07-25T19:20:26.130642Z",
+  "generated_at": "2026-07-30T19:14:02.992619Z",
   "source": {
     "commit": null,
     "dirty": true
@@ -13,7 +13,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de saber quem compra, o que prefere e com que frequência volta.",
+      "definition": "Capacidade de distinguir um cliente de outro ao longo do tempo e reter o que se aprendeu sobre ele — quem é, o que prefere, com que frequência volta. A distinção é a parte difícil: sem um modo de reconhecer a mesma pessoa em duas visitas, nada do que se observa numa delas se acumula.\n\nNão é cobrada por pedido, mas a cada reencontro: uma loja de mil clientes por dia que nunca vê o mesmo rosto duas vezes não precisa desta capacidade.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.conhecer-o-cliente.md"
@@ -26,7 +26,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa preparando.",
+      "definition": "Capacidade de entregar a mesma bebida em qualquer turno, com qualquer pessoa preparando. O que ela protege é a variação, não o nível: uma bebida sistematicamente mediana é consistente; uma excelente em metade dos turnos, não. A etapa que ela habilita (*Disponibilizar produto*) exige apenas que o produto fique pronto; é esta capacidade que exige que ele fique igual ao de ontem.\n\nÉ cobrada em cada bebida preparada e só se revela na comparação entre elas — nunca numa xícara isolada.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-consistencia-da-bebida.md"
@@ -39,7 +39,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação precisa deles.",
+      "definition": "Capacidade de acertar o que comprar, quanto e quando, de modo que o insumo certo esteja no ponto de uso antes de a operação precisar dele. A etapa que ela habilita (*Abastecer operação*) é o movimento do insumo até a custódia da loja; a capacidade é o acerto da decisão que dispara esse movimento. Sem ela o insumo até chega — na hora errada ou na quantidade errada.\n\nNão acontece num momento do fluxo: é cobrada toda vez que alguém estende a mão para pegar um insumo e ele precisa estar lá.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-insumos.md"
@@ -52,7 +52,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.",
+      "definition": "Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta. A etapa que ela habilita (*Transferir posse ao cliente*) exige que a posse passe; é esta capacidade que exige que passe para quem pediu, e só para ele.\n\nNão se mede num pedido isolado: ela aparece quando há mais de um pedido em jogo ao mesmo tempo — o balcão cheio, a rota com várias entregas —, e é por isso que costuma parecer desnecessária fora do pico.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.garantir-transferencia-correta.md"
@@ -65,7 +65,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.",
+      "definition": "Capacidade de haver, em cada turno, gente em número suficiente e treinada o bastante para operar — o que exige prever a necessidade, alocar quem cobre cada posição e manter as pessoas aptas ao longo do tempo. A etapa que ela habilita (*Preparar loja*) consome o resultado dessa capacidade num turno específico; a capacidade é o que faz existir alguém para escalar em todos eles.\n\nÉ cobrada antes de qualquer turno começar e outra vez a cada falta, a cada demissão e a cada bebida nova no cardápio.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.gerenciar-equipe.md"
@@ -78,7 +78,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega ou resolução.",
+      "definition": "Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega ou resolução — inclusive os que terminam cancelados, trocados ou devolvidos. A etapa que ela habilita (*Coletar pedido*) termina no instante em que a intenção vira compromisso conhecido; a capacidade continua depois disso, enquanto houver pedido em aberto.\n\nÉ cobrada de forma contínua durante a operação e cresce com o número de pedidos simultâneos, não com o número de clientes do dia.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.gerenciar-pedidos.md"
@@ -91,7 +91,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais contas devidas — no valor e no prazo acordados.",
+      "definition": "Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais contas devidas — no valor e no prazo acordados. Não cria a obrigação nem decide se ela existe: recebe o que já é devido e o leva até a quitação.\n\nÉ cobrada uma vez por obrigação em aberto, no prazo de cada uma, e não por dia de operação — o que a torna invisível justamente nos dias em que nada vence.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.honrar-compromissos-financeiros.md"
@@ -104,7 +104,7 @@
       "status": "active",
       "spine_kind": "capability",
       "confidence": "hypothesis",
-      "definition": "Capacidade de cobrar do cliente o valor correto no ato da venda e reconhecer esse recebimento no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada de honrar compromissos financeiros.",
+      "definition": "Capacidade de cobrar do cliente o valor correto pelo que foi vendido e reconhecer esse recebimento no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada de honrar compromissos financeiros. Não fixa o momento da cobrança: à vista, na saída ou em fatura depois, é escolha da realização.\n\nÉ cobrada em toda venda e falha de duas maneiras opostas — cobrar a menos come a margem, cobrar a mais devolve o cliente para o concorrente.",
       "areas": [],
       "source": {
         "path": "spine/capabilities/capability.processar-pagamentos.md"
@@ -117,7 +117,7 @@
       "status": "active",
       "spine_kind": "event",
       "confidence": "hypothesis",
-      "definition": "Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.",
+      "definition": "Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor. O que o evento marca é o reconhecimento, não a chegada física — caixa parada na porta ainda não é entrega aceita, e é por isso que existe um instante identificável em que a custódia muda de lado.\n\nAcontece por entrega, não por pedido de compra: um pedido dividido em duas entregas produz dois aceites — e, portanto, duas obrigações.",
       "areas": [],
       "source": {
         "path": "spine/events/event.entrega-de-insumos-aceita.md"
@@ -130,7 +130,7 @@
       "status": "active",
       "spine_kind": "invariant",
       "confidence": "hypothesis",
-      "definition": "O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa batem com o que foi registrado.",
+      "definition": "O que deve permanecer verdadeiro: sempre que o caixa é apurado, o que entrou e o que saiu conferem com o que foi registrado, sem diferença sem explicação.\n\nÉ condição, não tarefa: o invariante não manda conferir todo dia nem diz com que frequência apurar — só proíbe o estado em que a diferença existe e ninguém sabe de onde veio. Quando apurar é escolha da realização.",
       "areas": [],
       "source": {
         "path": "spine/invariants/invariant.caixa-sempre-conciliado.md"
@@ -143,7 +143,7 @@
       "status": "active",
       "spine_kind": "invariant",
       "confidence": "hypothesis",
-      "definition": "O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de uma bebida.",
+      "definition": "O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de uma bebida.\n\nÉ condição, não tarefa: não obriga a conferir a prateleira todo turno nem a etiquetar nada — obriga apenas que o insumo vencido não chegue à bebida. Como impedir isso é escolha da realização, e uma realização que descarta cedo demais cumpre o invariante desperdiçando.",
       "areas": [],
       "source": {
         "path": "spine/invariants/invariant.insumo-vencido-nao-utilizado.md"
@@ -156,7 +156,7 @@
       "status": "active",
       "spine_kind": "objective",
       "confidence": "hypothesis",
-      "definition": "Resultado desejado: servir bebidas dentro do padrão da casa, com uma margem que sustente o negócio no longo prazo.",
+      "definition": "Resultado desejado: cada bebida servida está dentro do padrão da casa e o conjunto delas deixa margem suficiente para sustentar o negócio no longo prazo. São duas condições que só valem juntas — bebida boa que não paga a conta e conta paga com bebida ruim falham igualmente o objetivo.\n\nNão é um acontecimento e por isso não tem cadência própria: é condição que se verifica por período — o mês, o ano —, somando o que as etapas produziram uma a uma.",
       "areas": [],
       "source": {
         "path": "spine/objectives/objective.servir-cafe-rentavel.md"
@@ -169,7 +169,7 @@
       "status": "active",
       "spine_kind": "obligation",
       "confidence": "hypothesis",
-      "definition": "O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega de insumos.",
+      "definition": "O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega de insumos. A obrigação não é o ato de pagar — é o estado que existe entre o aceite que a cria e a quitação que a extingue, e existe mesmo que ninguém a tenha anotado em lugar nenhum.\n\nNasce por entrega aceita e se extingue uma vez cada, na quitação. Quem lhe dá data é o prazo negociado com o fornecedor, não o calendário da loja.",
       "areas": [],
       "source": {
         "path": "spine/obligations/obligation.pagar-fornecedor.md"
@@ -182,7 +182,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias para operar o dia.",
+      "definition": "Transformação necessária: o que era estoque de um fornecedor passa a ser insumo sob custódia da operação, na quantidade e na condição de uso que os próximos dias exigem. Termina quando o insumo está disponível para consumo; decidir o que comprar e quanto é da capacidade que habilita esta etapa, não dela.\n\nAcontece por ciclo de reposição — semanal, diário ou contínuo, conforme o modelo —, nunca por cliente atendido.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.abastecer-operacao.md"
@@ -195,7 +195,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: a intenção de compra do cliente é capturada de forma acionável, qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.",
+      "definition": "Transformação necessária: a intenção de compra do cliente é capturada de forma acionável, qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado. Termina quando o pedido existe como objeto para as etapas seguintes; acompanhá-lo dali em diante é da capacidade que habilita esta etapa, não dela.\n\nAcontece uma vez por pedido: é o ato que faz o pedido passar a existir.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.coletar-pedido.md"
@@ -208,7 +208,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado de terceiros para revenda.",
+      "definition": "Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado de terceiros para revenda. Termina com o produto pronto; que ele saia igual ao de ontem é da capacidade que habilita esta etapa, não dela.\n\nAcontece por item do pedido: um pedido com dois cafés e um pão passa três vezes por esta etapa e uma só pela seguinte.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.disponibilizar-produto.md"
@@ -221,7 +221,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.",
+      "definition": "Transformação necessária: quem comprou uma vez passa a ter razão para voltar e, no limite, para trazer outras pessoas. O que se transforma aqui é o vínculo, não o produto — nada muda na bebida, muda a probabilidade da próxima visita.\n\nÉ a única etapa cuja cadência não é a do pedido: acontece por cliente, acumulando-se ao longo de muitas passagens pelas etapas anteriores, e por isso não se conclui dentro de um dia de operação.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.fidelizar-cliente.md"
@@ -234,7 +234,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada antes de receber o primeiro cliente.",
+      "definition": "Transformação necessária: o posto de operação passa de parado a apto a atender — instalação em condição de higiene e funcionamento, insumos ao alcance da mão e gente escalada e presente. Termina antes do primeiro cliente; ter as pessoas certas e treinadas para escalar é da capacidade que habilita esta etapa, não dela.\n\nAcontece por turno, não por dia: numa operação de dois turnos, a etapa acontece duas vezes.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.preparar-loja.md"
@@ -247,7 +247,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: o pagamento é recebido e reconhecido pela operação.",
+      "definition": "Transformação necessária: o valor devido pelo pedido sai do cliente e entra reconhecido no caixa da operação. São dois movimentos que a etapa exige juntos — o dinheiro muda de mãos e o recebimento passa a constar de onde a operação lê seu resultado. Um sem o outro deixa a etapa pela metade: dinheiro na gaveta que ninguém registrou não virou receita reconhecida.\n\nAcontece uma vez por pedido, mesmo quando o cliente divide o valor em duas formas de pagamento.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.receber-pagamento.md"
@@ -260,7 +260,7 @@
       "status": "active",
       "spine_kind": "value-stage",
       "confidence": "hypothesis",
-      "definition": "Transformação necessária: a posse do produto passa para o cliente certo — por entrega, retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.",
+      "definition": "Transformação necessária: a posse do produto passa para o cliente certo — por entrega, retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio. Termina quando o produto está com quem o pediu; assegurar que seja o cliente certo é da capacidade que habilita esta etapa, não dela.\n\nAcontece por pedido, e não por item: os três itens de um mesmo pedido mudam de posse numa entrega só.",
       "areas": [],
       "source": {
         "path": "spine/value-stages/value-stage.transferir-posse-ao-cliente.md"

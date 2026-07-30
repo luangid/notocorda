@@ -2,7 +2,7 @@
 atlas:
   aviso: Projeção derivada para leitura por IA — nunca editar; propor mudanças nos Markdown de autoria.
   schema_version: '0.2'
-  gerado_em: '2026-07-25T19:20:26.130642Z'
+  gerado_em: '2026-07-30T19:14:02.992619Z'
   commit: null
 cenarios:
 - id: scenario.loja-inteligente
@@ -40,7 +40,13 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de saber quem compra, o que prefere e com que frequência volta.
+    definicao: 'Capacidade de distinguir um cliente de outro ao longo do tempo e reter o que se aprendeu
+      sobre ele — quem é, o que prefere, com que frequência volta. A distinção é a parte difícil: sem
+      um modo de reconhecer a mesma pessoa em duas visitas, nada do que se observa numa delas se acumula.
+
+
+      Não é cobrada por pedido, mas a cada reencontro: uma loja de mil clientes por dia que nunca vê o
+      mesmo rosto duas vezes não precisa desta capacidade.'
     cenarios: todos
     relacoes:
     - enables → value-stage.fidelizar-cliente (Fidelizar cliente)
@@ -52,8 +58,13 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de entregar a mesma qualidade de bebida em qualquer turno, com qualquer pessoa
-      preparando.
+    definicao: 'Capacidade de entregar a mesma bebida em qualquer turno, com qualquer pessoa preparando.
+      O que ela protege é a variação, não o nível: uma bebida sistematicamente mediana é consistente;
+      uma excelente em metade dos turnos, não. A etapa que ela habilita (*Disponibilizar produto*) exige
+      apenas que o produto fique pronto; é esta capacidade que exige que ele fique igual ao de ontem.
+
+
+      É cobrada em cada bebida preparada e só se revela na comparação entre elas — nunca numa xícara isolada.'
     cenarios: todos
     relacoes:
     - enables → value-stage.disponibilizar-produto (Disponibilizar produto)
@@ -66,8 +77,14 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de ter os insumos certos disponíveis no ponto de uso, no momento em que a operação
-      precisa deles.
+    definicao: 'Capacidade de acertar o que comprar, quanto e quando, de modo que o insumo certo esteja
+      no ponto de uso antes de a operação precisar dele. A etapa que ela habilita (*Abastecer operação*)
+      é o movimento do insumo até a custódia da loja; a capacidade é o acerto da decisão que dispara esse
+      movimento. Sem ela o insumo até chega — na hora errada ou na quantidade errada.
+
+
+      Não acontece num momento do fluxo: é cobrada toda vez que alguém estende a mão para pegar um insumo
+      e ele precisa estar lá.'
     cenarios: todos
     relacoes:
     - enables → value-stage.abastecer-operacao (Abastecer operação)
@@ -82,8 +99,15 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que
-      seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta.
+    definicao: 'Capacidade de assegurar que o produto certo chega à posse do cliente certo, qualquer que
+      seja o meio de transferência — balcão, entrega, retirada ou qualquer outro ponto de coleta. A etapa
+      que ela habilita (*Transferir posse ao cliente*) exige que a posse passe; é esta capacidade que
+      exige que passe para quem pediu, e só para ele.
+
+
+      Não se mede num pedido isolado: ela aparece quando há mais de um pedido em jogo ao mesmo tempo —
+      o balcão cheio, a rota com várias entregas —, e é por isso que costuma parecer desnecessária fora
+      do pico.'
     cenarios: todos
     relacoes:
     - enables → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
@@ -95,7 +119,14 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de ter pessoas certas, treinadas e escaladas para operar a loja.
+    definicao: 'Capacidade de haver, em cada turno, gente em número suficiente e treinada o bastante para
+      operar — o que exige prever a necessidade, alocar quem cobre cada posição e manter as pessoas aptas
+      ao longo do tempo. A etapa que ela habilita (*Preparar loja*) consome o resultado dessa capacidade
+      num turno específico; a capacidade é o que faz existir alguém para escalar em todos eles.
+
+
+      É cobrada antes de qualquer turno começar e outra vez a cada falta, a cada demissão e a cada bebida
+      nova no cardápio.'
     cenarios: todos
     relacoes:
     - enables → value-stage.preparar-loja (Preparar loja)
@@ -109,8 +140,14 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega
-      ou resolução.
+    definicao: 'Capacidade de registrar, acompanhar e coordenar pedidos desde sua solicitação até a entrega
+      ou resolução — inclusive os que terminam cancelados, trocados ou devolvidos. A etapa que ela habilita
+      (*Coletar pedido*) termina no instante em que a intenção vira compromisso conhecido; a capacidade
+      continua depois disso, enquanto houver pedido em aberto.
+
+
+      É cobrada de forma contínua durante a operação e cresce com o número de pedidos simultâneos, não
+      com o número de clientes do dia.'
     cenarios: todos
     relacoes:
     - enables → value-stage.coletar-pedido (Coletar pedido)
@@ -123,8 +160,13 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais
-      contas devidas — no valor e no prazo acordados.
+    definicao: 'Capacidade de liquidar as obrigações financeiras da loja — pagar fornecedores e demais
+      contas devidas — no valor e no prazo acordados. Não cria a obrigação nem decide se ela existe: recebe
+      o que já é devido e o leva até a quitação.
+
+
+      É cobrada uma vez por obrigação em aberto, no prazo de cada uma, e não por dia de operação — o que
+      a torna invisível justamente nos dias em que nada vence.'
     cenarios: todos
     recebe:
     - Caixa sempre conciliado (invariant.caixa-sempre-conciliado) —constrains→ este
@@ -136,9 +178,14 @@ espinha:
     tipo: capability
     status: active
     confianca: hypothesis
-    definicao: Capacidade de cobrar do cliente o valor correto no ato da venda e reconhecer esse recebimento
-      no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade separada
-      de honrar compromissos financeiros.
+    definicao: 'Capacidade de cobrar do cliente o valor correto pelo que foi vendido e reconhecer esse
+      recebimento no caixa. É o lado de contas a receber do financeiro — pagar fornecedores é a capacidade
+      separada de honrar compromissos financeiros. Não fixa o momento da cobrança: à vista, na saída ou
+      em fatura depois, é escolha da realização.
+
+
+      É cobrada em toda venda e falha de duas maneiras opostas — cobrar a menos come a margem, cobrar
+      a mais devolve o cliente para o concorrente.'
     cenarios: todos
     relacoes:
     - enables → value-stage.receber-pagamento (Receber pagamento)
@@ -151,7 +198,13 @@ espinha:
     tipo: event
     status: active
     confianca: hypothesis
-    definicao: 'Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.'
+    definicao: 'Acontecimento relevante: a loja reconhece o recebimento de insumos enviados por um fornecedor.
+      O que o evento marca é o reconhecimento, não a chegada física — caixa parada na porta ainda não
+      é entrega aceita, e é por isso que existe um instante identificável em que a custódia muda de lado.
+
+
+      Acontece por entrega, não por pedido de compra: um pedido dividido em duas entregas produz dois
+      aceites — e, portanto, duas obrigações.'
     cenarios: todos
     relacoes:
     - creates → obligation.pagar-fornecedor (Pagar fornecedor)
@@ -164,8 +217,13 @@ espinha:
     tipo: invariant
     status: active
     confianca: hypothesis
-    definicao: 'O que deve permanecer verdadeiro: a cada fechamento, o que entrou e o que saiu do caixa
-      batem com o que foi registrado.'
+    definicao: 'O que deve permanecer verdadeiro: sempre que o caixa é apurado, o que entrou e o que saiu
+      conferem com o que foi registrado, sem diferença sem explicação.
+
+
+      É condição, não tarefa: o invariante não manda conferir todo dia nem diz com que frequência apurar
+      — só proíbe o estado em que a diferença existe e ninguém sabe de onde veio. Quando apurar é escolha
+      da realização.'
     cenarios: todos
     relacoes:
     - constrains → capability.processar-pagamentos (Processar pagamentos)
@@ -180,7 +238,12 @@ espinha:
     status: active
     confianca: hypothesis
     definicao: 'O que deve permanecer verdadeiro: nenhum insumo fora da validade entra na produção de
-      uma bebida.'
+      uma bebida.
+
+
+      É condição, não tarefa: não obriga a conferir a prateleira todo turno nem a etiquetar nada — obriga
+      apenas que o insumo vencido não chegue à bebida. Como impedir isso é escolha da realização, e uma
+      realização que descarta cedo demais cumpre o invariante desperdiçando.'
     cenarios: todos
     relacoes:
     - constrains → capability.garantir-consistencia-da-bebida (Garantir consistência da bebida)
@@ -193,8 +256,13 @@ espinha:
     tipo: objective
     status: active
     confianca: hypothesis
-    definicao: 'Resultado desejado: servir bebidas dentro do padrão da casa, com uma margem que sustente
-      o negócio no longo prazo.'
+    definicao: 'Resultado desejado: cada bebida servida está dentro do padrão da casa e o conjunto delas
+      deixa margem suficiente para sustentar o negócio no longo prazo. São duas condições que só valem
+      juntas — bebida boa que não paga a conta e conta paga com bebida ruim falham igualmente o objetivo.
+
+
+      Não é um acontecimento e por isso não tem cadência própria: é condição que se verifica por período
+      — o mês, o ano —, somando o que as etapas produziram uma a uma.'
     cenarios: todos
     recebe:
     - Fidelizar cliente (value-stage.fidelizar-cliente) —advances→ este
@@ -205,7 +273,12 @@ espinha:
     status: active
     confianca: hypothesis
     definicao: 'O que se torna devido: a contraprestação financeira criada quando a loja aceita uma entrega
-      de insumos.'
+      de insumos. A obrigação não é o ato de pagar — é o estado que existe entre o aceite que a cria e
+      a quitação que a extingue, e existe mesmo que ninguém a tenha anotado em lugar nenhum.
+
+
+      Nasce por entrega aceita e se extingue uma vez cada, na quitação. Quem lhe dá data é o prazo negociado
+      com o fornecedor, não o calendário da loja.'
     cenarios: todos
     relacoes:
     - requires → capability.honrar-compromissos-financeiros (Honrar compromissos financeiros)
@@ -217,8 +290,14 @@ espinha:
     tipo: value-stage
     status: active
     confianca: hypothesis
-    definicao: 'Transformação necessária: insumos disponíveis na loja, na quantidade e na condição necessárias
-      para operar o dia.'
+    definicao: 'Transformação necessária: o que era estoque de um fornecedor passa a ser insumo sob custódia
+      da operação, na quantidade e na condição de uso que os próximos dias exigem. Termina quando o insumo
+      está disponível para consumo; decidir o que comprar e quanto é da capacidade que habilita esta etapa,
+      não dela.
+
+
+      Acontece por ciclo de reposição — semanal, diário ou contínuo, conforme o modelo —, nunca por cliente
+      atendido.'
     cenarios: todos
     relacoes:
     - advances → value-stage.preparar-loja (Preparar loja)
@@ -233,7 +312,12 @@ espinha:
     status: active
     confianca: hypothesis
     definicao: 'Transformação necessária: a intenção de compra do cliente é capturada de forma acionável,
-      qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.'
+      qualquer que seja o canal — balcão, totem, aplicativo ou qualquer outro meio ainda não inventado.
+      Termina quando o pedido existe como objeto para as etapas seguintes; acompanhá-lo dali em diante
+      é da capacidade que habilita esta etapa, não dela.
+
+
+      Acontece uma vez por pedido: é o ato que faz o pedido passar a existir.'
     cenarios: todos
     relacoes:
     - advances → value-stage.disponibilizar-produto (Disponibilizar produto)
@@ -250,7 +334,12 @@ espinha:
     confianca: hypothesis
     definicao: 'Transformação necessária: o produto do pedido fica pronto para ser passado ao cliente
       — seja produzido na hora, montado a partir de insumos, ou obtido já pronto, por exemplo comprado
-      de terceiros para revenda.'
+      de terceiros para revenda. Termina com o produto pronto; que ele saia igual ao de ontem é da capacidade
+      que habilita esta etapa, não dela.
+
+
+      Acontece por item do pedido: um pedido com dois cafés e um pão passa três vezes por esta etapa e
+      uma só pela seguinte.'
     cenarios: todos
     relacoes:
     - advances → value-stage.transferir-posse-ao-cliente (Transferir posse ao cliente)
@@ -263,7 +352,13 @@ espinha:
     tipo: value-stage
     status: active
     confianca: hypothesis
-    definicao: 'Transformação necessária: o cliente volta e recomenda a loja a outras pessoas.'
+    definicao: 'Transformação necessária: quem comprou uma vez passa a ter razão para voltar e, no limite,
+      para trazer outras pessoas. O que se transforma aqui é o vínculo, não o produto — nada muda na bebida,
+      muda a probabilidade da próxima visita.
+
+
+      É a única etapa cuja cadência não é a do pedido: acontece por cliente, acumulando-se ao longo de
+      muitas passagens pelas etapas anteriores, e por isso não se conclui dentro de um dia de operação.'
     cenarios: todos
     relacoes:
     - advances → objective.servir-cafe-rentavel (Servir café com qualidade e margem)
@@ -277,8 +372,13 @@ espinha:
     tipo: value-stage
     status: active
     confianca: hypothesis
-    definicao: 'Transformação necessária: loja pronta para operar — limpa, equipada e com equipe escalada
-      antes de receber o primeiro cliente.'
+    definicao: 'Transformação necessária: o posto de operação passa de parado a apto a atender — instalação
+      em condição de higiene e funcionamento, insumos ao alcance da mão e gente escalada e presente. Termina
+      antes do primeiro cliente; ter as pessoas certas e treinadas para escalar é da capacidade que habilita
+      esta etapa, não dela.
+
+
+      Acontece por turno, não por dia: numa operação de dois turnos, a etapa acontece duas vezes.'
     cenarios: todos
     relacoes:
     - advances → value-stage.coletar-pedido (Coletar pedido)
@@ -293,7 +393,13 @@ espinha:
     tipo: value-stage
     status: active
     confianca: hypothesis
-    definicao: 'Transformação necessária: o pagamento é recebido e reconhecido pela operação.'
+    definicao: 'Transformação necessária: o valor devido pelo pedido sai do cliente e entra reconhecido
+      no caixa da operação. São dois movimentos que a etapa exige juntos — o dinheiro muda de mãos e o
+      recebimento passa a constar de onde a operação lê seu resultado. Um sem o outro deixa a etapa pela
+      metade: dinheiro na gaveta que ninguém registrou não virou receita reconhecida.
+
+
+      Acontece uma vez por pedido, mesmo quando o cliente divide o valor em duas formas de pagamento.'
     cenarios: todos
     relacoes:
     - advances → value-stage.fidelizar-cliente (Fidelizar cliente)
@@ -309,7 +415,13 @@ espinha:
     status: active
     confianca: hypothesis
     definicao: 'Transformação necessária: a posse do produto passa para o cliente certo — por entrega,
-      retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio.'
+      retirada no balcão, coleta em um ponto de encontro ou qualquer outro meio. Termina quando o produto
+      está com quem o pediu; assegurar que seja o cliente certo é da capacidade que habilita esta etapa,
+      não dela.
+
+
+      Acontece por pedido, e não por item: os três itens de um mesmo pedido mudam de posse numa entrega
+      só.'
     cenarios: todos
     relacoes:
     - advances → value-stage.receber-pagamento (Receber pagamento)
