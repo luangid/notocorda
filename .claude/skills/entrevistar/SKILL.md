@@ -49,8 +49,11 @@ trabalho da pessoa, sai como documentação. Três modos: `preparar` →
    dores da área.
 4. Triangular fronteiras: "recebo de / entrego para" cruzado com o grafo —
    entrega sem contraparte é lacuna candidata e pauta da PRÓXIMA entrevista.
-5. Divergência entre entrevistados ou com documentos: registrar em
-   "Problemas ou questões abertas", não harmonizar.
+5. Contradição é saída obrigatória: todo processamento termina com a
+   seção "Onde esta fonte contradiz o mapa" — o relato cruzado contra
+   as caixas existentes. Divergência vira `problem` ou evidência com
+   `contradicts`, nunca harmonizada em silêncio; se nada contradiz, a
+   seção o declara ("nenhuma contradição encontrada").
 6. Fechar: `./notocorda check <vault>` + skill `revisar`.
 
 ## `devolver <pessoa/área>`

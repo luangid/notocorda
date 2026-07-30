@@ -180,7 +180,7 @@ tocar nestas.
 | `desktop/` | Janela nativa e ponte para o Python: abrir o documento de origem, salvar view, revalidar. |
 | `schemas/` | O contrato executável: frontmatter de documento, forma do `graph.json`, vocabulário de relações. |
 | `examples/cafeteria/` | Uma cafeteria fictícia documentada por inteiro: espinha, dois cenários To-Be concorrentes, cinco problemas, evidências. É a prova de conceito. |
-| `docs/` | [O método](docs/guia-grafo-em-camadas.md) e o [contrato de formatos](docs/contrato-de-formatos.md). |
+| `docs/` | [O método](docs/guia-grafo-em-camadas.md), o [contrato de formatos](docs/contrato-de-formatos.md) e [onde isto se encaixa entre OKR, BSC e o padrão LLM Wiki](docs/okr-bsc-e-llm-wiki.md). |
 
 A interface é **uma só** para desktop e web: `viewer/bridge.js` é o único
 arquivo que sabe onde está rodando. Hoje há uma janela nativa; amanhã, um
