@@ -61,7 +61,14 @@ def parse_doc(path: Path):
     return {
         "front": front,
         "name": h1.group(1).strip() if h1 else front.get("id", path.stem),
-        "definition": " ".join(sections.get("Definição", "").split()) or None,
+        # Cada parágrafo vira uma linha; o \n\n separa parágrafos para o
+        # viewer — colapsar tudo numa linha só fazia definições longas
+        # virarem parede de texto no card.
+        "definition": "\n\n".join(
+            " ".join(p.split())
+            for p in re.split(r"\n\s*\n", sections.get("Definição", ""))
+            if p.strip()
+        ) or None,
         # Relações vivem no corpo INTEIRO, não só em "## Relações" — o próprio
         # template do Guia (§5.6) coloca `evidences`/`derived-from` sob
         # "## Evidências". Restringir a uma seção descartava arestas em silêncio.

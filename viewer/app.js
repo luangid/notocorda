@@ -1612,6 +1612,15 @@ class NotocordaApp {
     setTimeout(() => this.fitView(), 60);
   }
   esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  // Markdown inline mínimo para prosa vinda dos documentos (definições):
+  // escapa primeiro, depois **negrito**, *itálico*, `código` e parágrafos.
+  md(s) {
+    return String(s ?? '').split(/\n\s*\n/).map(p => this.esc(p)
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[\s(>—–])\*([^*\n]+)\*(?=[\s).,;:!?—–]|$)/g, '$1<em>$2</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+    ).map(p => `<p style="margin:0 0 8px">${p}</p>`).join('');
+  }
   // ---- notas da trilha ------------------------------------------------
   // Cada célula aberta ganha uma nota sobre a prancha. Abrir uma relação de
   // dentro de uma nota empilha a próxima em cascata: a trilha é o caminho de
@@ -1658,7 +1667,7 @@ class NotocordaApp {
         ${anterior ? `<div class="nota-trilha">↳ vindo de <span style="opacity:.9">${esc(anterior.name)}</span></div>` : ''}
         <h2 class="display nota-nome">${esc(n.name)}</h2>
         <div class="nota-corpo">
-          <div style="padding:8px 14px 12px; font-size:13px; line-height:1.55;">${esc(n.def || '— sem definição escrita')}</div>
+          <div style="padding:8px 14px 4px; font-size:13px; line-height:1.55;">${this.md(n.def || '— sem definição escrita')}</div>
           <div style="padding:0 14px 12px; display:flex; flex-wrap:wrap; gap:6px;">
             <span class="card-chip"><span class="st-dot" style="background:${this.statusCor(n.status)}"></span> ${esc(n.status)}</span>
             <span class="card-chip">${esc(C.CONFIDENCE_LABELS[n.confidence] || n.confidence || 'sem confiança')}</span>
